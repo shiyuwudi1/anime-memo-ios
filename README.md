@@ -11,9 +11,11 @@
 - SwiftUI + Swift 6，最低 iOS 18
 - 3 个主 Tab：首页 / 搜索 / 片库
 - Liquid Glass 设计系统：iOS 26+ 原生，iOS 18 材质回退
-- 首页 / 搜索 / 片库 / 详情 / 编辑 / 设置 / Glass Lab 的模拟数据界面已完成
-- TMDB client、DTO、错误处理和模型测试已接入
-- 当前 UI 仍使用 Mock 数据；下一步把搜索、详情和片库切到 TMDB + SwiftData
+- 首页 / 搜索 / 片库 / 详情 / 编辑 / 设置 / Glass Lab 界面
+- TMDB 真实搜索、TV/电影详情、海报与分季数据已接入
+- 片库本地 JSON 持久化，支持 JSON 导出/导入
+- 12 个单元测试通过（Mock 模型、TMDB DTO、LibraryStore）
+- 仍待完善：多季切换、真实“今日更新”筛选、通知/小组件、iCloud
 
 ## 数据源与商用
 
@@ -98,7 +100,7 @@ AnimeMemo/
 
 ## 下一步
 
-1. SwiftData 模型 + 片库持久化
-2. 搜索 / 详情接入 TMDB 真实数据
-3. 分季记录、今日更新、JSON 导出/导入
+1. 多季选择与真实“今日更新”筛选
+2. 通知 / 小组件
+3. iCloud 同步与年度统计
 4. 真机 / TestFlight 验证 Liquid Glass

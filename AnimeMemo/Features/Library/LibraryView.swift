@@ -1,11 +1,16 @@
 import SwiftUI
 
 struct LibraryView: View {
-    @State private var entries: [MockAnime] = MockAnime.library
+    @Environment(LibraryStore.self) private var library
+
     @State private var filter: LibraryFilter = .watching
     @State private var sort: LibrarySort = .recent
     @State private var query = ""
     @State private var toast: LibraryToast?
+
+    private var entries: [MockAnime] {
+        library.entries
+    }
 
     private var filteredEntries: [MockAnime] {
         var result = entries.filter { anime in
@@ -136,6 +141,14 @@ struct LibraryView: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.82), value: toast?.id)
+            .task(id: toast?.id) {
+                guard let toastID = toast?.id else { return }
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled, toast?.id == toastID else { return }
+                withAnimation {
+                    toast = nil
+                }
+            }
         }
     }
 
@@ -145,30 +158,19 @@ struct LibraryView: View {
     }
 
     private func increment(_ anime: MockAnime) {
-        guard let index = entries.firstIndex(where: { $0.id == anime.id }) else { return }
+        guard let result = library.increment(id: anime.id) else { return }
 
-        let previousProgress = entries[index].progress
-        let previousStatus = entries[index].status
-        let total = max(entries[index].total, 1)
-        let nextProgress = min(previousProgress + 1, total)
-
-        entries[index].progress = nextProgress
-        if entries[index].status == .planning {
-            entries[index].status = .watching
-        }
-        if nextProgress >= total {
-            entries[index].status = .completed
-        }
+        let previous = result.previous
+        let current = result.current
+        let didFinish = current.progress >= max(current.total, 1)
 
         withAnimation(.spring(response: 0.32, dampingFraction: 0.84)) {
             toast = LibraryToast(
-                text: nextProgress >= total
-                    ? "《\(entries[index].title)》已看完"
-                    : "已记录《\(entries[index].title)》第 \(nextProgress) 话"
+                text: didFinish
+                    ? "《\(current.title)》已看完"
+                    : "已记录《\(current.title)》第 \(current.progress) 话"
             ) {
-                guard let undoIndex = entries.firstIndex(where: { $0.id == anime.id }) else { return }
-                entries[undoIndex].progress = previousProgress
-                entries[undoIndex].status = previousStatus
+                library.replace(previous)
                 withAnimation {
                     toast = nil
                 }
@@ -177,14 +179,11 @@ struct LibraryView: View {
     }
 
     private func delete(_ anime: MockAnime) {
-        let removed = anime
-        let index = entries.firstIndex(where: { $0.id == anime.id })
-        entries.removeAll { $0.id == anime.id }
+        guard let result = library.remove(id: anime.id) else { return }
+
         withAnimation {
-            toast = LibraryToast(text: "已从片库移除《\(removed.title)》") {
-                if let index {
-                    entries.insert(removed, at: min(index, entries.count))
-                }
+            toast = LibraryToast(text: "已从片库移除《\(result.anime.title)》") {
+                library.restore(result.anime, at: result.index)
                 withAnimation {
                     toast = nil
                 }
@@ -198,7 +197,7 @@ private struct LibraryRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            PosterArtwork(style: anime.poster, cornerRadius: 12, showsLabel: false)
+            PosterArtwork(style: anime.poster, posterURL: anime.posterURL, cornerRadius: 12, showsLabel: false)
                 .frame(width: 58, height: 82)
 
             VStack(alignment: .leading, spacing: 6) {
@@ -233,7 +232,7 @@ private struct LibraryRow: View {
                 HStack(spacing: 3) {
                     Image(systemName: "star.fill")
                         .font(.system(size: 9))
-                    Text(String(format: "%.1f", anime.score))
+                    Text(String(format: "%.1f", anime.userScore ?? anime.score))
                         .font(.caption.weight(.semibold))
                 }
                 .foregroundStyle(AppTheme.accent)

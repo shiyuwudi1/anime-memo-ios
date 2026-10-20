@@ -2,17 +2,21 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(LibraryStore.self) private var library
 
-    @State private var entries: [MockAnime] = MockAnime.library
     @State private var showSettings = false
     @State private var toast: HomeToast?
+
+    private var entries: [MockAnime] {
+        library.entries
+    }
 
     private var watching: [MockAnime] {
         entries.filter { $0.status == .watching }
     }
 
     private var todayUpdates: [MockAnime] {
-        entries.filter { $0.status == .watching && $0.nextEpisode != nil }
+        entries.filter { $0.status == .watching && $0.isAiringToday }
     }
 
     private var greeting: String {
@@ -79,6 +83,14 @@ struct HomeView: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.82), value: toast?.id)
+            .task(id: toast?.id) {
+                guard let toastID = toast?.id else { return }
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled, toast?.id == toastID else { return }
+                withAnimation {
+                    toast = nil
+                }
+            }
         }
     }
 
@@ -166,7 +178,7 @@ struct HomeView: View {
                     ForEach(entries) { anime in
                         NavigationLink(value: anime) {
                             VStack(alignment: .leading, spacing: 7) {
-                                PosterArtwork(style: anime.poster)
+                                PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
                                     .frame(width: 104, height: 148)
 
                                 Text(anime.title)
@@ -205,37 +217,24 @@ struct HomeView: View {
     }
 
     private func increment(_ anime: MockAnime) {
-        guard let index = entries.firstIndex(where: { $0.id == anime.id }) else { return }
+        guard let result = library.increment(id: anime.id) else { return }
 
-        let previousProgress = entries[index].progress
-        let previousStatus = entries[index].status
-        let total = max(entries[index].total, 1)
-        let nextProgress = min(previousProgress + 1, total)
-
-        entries[index].progress = nextProgress
-        if entries[index].status == .planning {
-            entries[index].status = .watching
-        }
-
-        let didFinish = nextProgress >= total
-        if didFinish {
-            entries[index].status = .completed
-        }
+        let previous = result.previous
+        let current = result.current
+        let didFinish = current.progress >= max(current.total, 1)
 
         let text: String
-        if entries[index].isMovie {
-            text = didFinish ? "《\(entries[index].title)》已看完" : "《\(entries[index].title)》进度已更新"
+        if current.isMovie {
+            text = didFinish ? "《\(current.title)》已看完" : "《\(current.title)》进度已更新"
         } else {
             text = didFinish
-                ? "《\(entries[index].title)》已看完"
-                : "已记录《\(entries[index].title)》第 \(nextProgress) 话"
+                ? "《\(current.title)》已看完"
+                : "已记录《\(current.title)》第 \(current.progress) 话"
         }
 
         withAnimation(.spring(response: 0.32, dampingFraction: 0.84)) {
             toast = HomeToast(text: text) {
-                guard let undoIndex = entries.firstIndex(where: { $0.id == anime.id }) else { return }
-                entries[undoIndex].progress = previousProgress
-                entries[undoIndex].status = previousStatus
+                library.replace(previous)
                 withAnimation {
                     toast = nil
                 }
@@ -252,7 +251,7 @@ private struct ContinueWatchingRow: View {
         HStack(spacing: 14) {
             NavigationLink(value: anime) {
                 HStack(spacing: 14) {
-                    PosterArtwork(style: anime.poster, cornerRadius: 12, showsLabel: false)
+                    PosterArtwork(style: anime.poster, posterURL: anime.posterURL, cornerRadius: 12, showsLabel: false)
                         .frame(width: 62, height: 90)
 
                     VStack(alignment: .leading, spacing: 7) {
@@ -302,7 +301,7 @@ private struct TodayUpdateCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             NavigationLink(value: anime) {
-                PosterArtwork(style: anime.poster)
+                PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
                     .frame(width: 152, height: 214)
             }
             .buttonStyle(.plain)

@@ -1,11 +1,16 @@
 import SwiftUI
 
 struct AnimeDetailView: View {
+    @Environment(LibraryStore.self) private var library
+
     let anime: MockAnime
 
     @State private var progress: Int
     @State private var selectedSeason = 0
     @State private var isFavorite = false
+    @State private var status: LibraryStatus
+    @State private var userScore: Double?
+    @State private var notes: String
     @State private var isSynopsisExpanded = false
     @State private var showEditSheet = false
     @State private var toast: DetailToast?
@@ -16,10 +21,14 @@ struct AnimeDetailView: View {
         self.anime = anime
         _progress = State(initialValue: anime.progress)
         _selectedSeason = State(initialValue: anime.seasonLabel.contains("2") ? 1 : 0)
+        _status = State(initialValue: anime.status)
+        _userScore = State(initialValue: anime.userScore)
+        _notes = State(initialValue: anime.notes)
     }
 
     private var total: Int { max(anime.total, 1) }
     private var fraction: Double { min(Double(progress) / Double(total), 1) }
+    private var isInLibrary: Bool { library.entry(for: anime.id) != nil }
 
     private var progressLabel: String {
         if anime.isMovie {
@@ -60,7 +69,14 @@ struct AnimeDetailView: View {
             actionBar
         }
         .sheet(isPresented: $showEditSheet) {
-            EditEntrySheet(anime: anime, progress: $progress)
+            EditEntrySheet(anime: editableSnapshot) { newStatus, newProgress, newScore, newNotes, newFavorite in
+                status = newStatus
+                progress = newProgress
+                userScore = newScore
+                notes = newNotes
+                isFavorite = newFavorite
+                persistEntry(force: true)
+            }
         }
         .overlay(alignment: .bottom) {
             if let toast {
@@ -74,11 +90,28 @@ struct AnimeDetailView: View {
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.82), value: toast?.id)
+        .task(id: toast?.id) {
+            guard let toastID = toast?.id else { return }
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled, toast?.id == toastID else { return }
+            withAnimation {
+                toast = nil
+            }
+        }
+        .onAppear {
+            syncFromStore()
+        }
+        .onChange(of: progress) { _, _ in
+            persistEntry()
+        }
+        .onChange(of: isFavorite) { _, _ in
+            persistEntry()
+        }
     }
 
     private var hero: some View {
         ZStack(alignment: .bottomLeading) {
-            PosterArtwork(style: anime.poster, cornerRadius: 0, showsLabel: false)
+            PosterArtwork(style: anime.poster, posterURL: anime.posterURL, cornerRadius: 0, showsLabel: false)
                 .frame(height: 320)
                 .clipped()
 
@@ -90,7 +123,7 @@ struct AnimeDetailView: View {
             .frame(height: 320)
 
             HStack(alignment: .bottom, spacing: 16) {
-                PosterArtwork(style: anime.poster)
+                PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
                     .frame(width: 108, height: 158)
                     .shadow(color: .black.opacity(0.28), radius: 18, y: 10)
 
@@ -138,17 +171,30 @@ struct AnimeDetailView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
 
-                GlassChipRow(spacing: 8) {
-                    ForEach(seasons.indices, id: \.self) { index in
-                        GlassChip(
-                            title: seasons[index],
-                            isSelected: selectedSeason == index
-                        ) {
-                            withAnimation(.snappy) {
-                                selectedSeason = index
+                if anime.tmdbID == nil {
+                    GlassChipRow(spacing: 8) {
+                        ForEach(seasons.indices, id: \.self) { index in
+                            GlassChip(
+                                title: seasons[index],
+                                isSelected: selectedSeason == index
+                            ) {
+                                withAnimation(.snappy) {
+                                    selectedSeason = index
+                                }
                             }
                         }
                     }
+                } else {
+                    Text(anime.seasonLabel)
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .foregroundStyle(.white)
+                        .glassSurface(
+                            .capsule,
+                            variant: .tinted(AppTheme.accent.opacity(0.62)),
+                            interactive: false
+                        )
                 }
             }
             .padding(.horizontal, AppTheme.pagePadding)
@@ -182,11 +228,38 @@ struct AnimeDetailView: View {
                 GlassButton(emphasis: .prominent) {
                     increment()
                 } label: {
-                    Label("第 \(min(progress + 1, total)) 话", systemImage: "plus")
+                    Text("+1")
                         .font(.subheadline.weight(.bold))
                 }
                 .disabled(progress >= total)
                 .opacity(progress >= total ? 0.55 : 1)
+            }
+
+            if !isInLibrary {
+                Button {
+                    addToLibrary(status: .planning)
+                } label: {
+                    Label("加入想看", systemImage: "bookmark")
+                        .font(.caption.weight(.semibold))
+                }
+                .foregroundStyle(AppTheme.accent)
+                .buttonStyle(.plain)
+            }
+
+            if let userScore {
+                HStack(spacing: 6) {
+                    Text("我的评分")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 9))
+                    Text(String(format: "%.1f", userScore))
+                        .font(.caption.weight(.semibold).monospacedDigit())
+                }
+                .foregroundStyle(AppTheme.accent)
             }
         }
         .padding(16)
@@ -306,6 +379,13 @@ struct AnimeDetailView: View {
         let previous = progress
         progress = min(progress + 1, total)
 
+        if status == .planning {
+            status = .watching
+        }
+        if progress >= total {
+            status = .completed
+        }
+
         withAnimation(.spring(response: 0.32, dampingFraction: 0.84)) {
             toast = DetailToast(
                 text: progress >= total
@@ -313,16 +393,74 @@ struct AnimeDetailView: View {
                     : "已记录《\(anime.title)》第 \(progress) 话"
             ) {
                 progress = previous
+                if previous == 0 {
+                    status = .planning
+                } else if previous < total {
+                    status = .watching
+                }
                 withAnimation {
                     toast = nil
                 }
             }
         }
     }
+
+    private var editableSnapshot: MockAnime {
+        var copy = anime
+        copy.progress = progress
+        copy.status = status
+        copy.userScore = userScore
+        copy.notes = notes
+        copy.isFavorite = isFavorite
+        return copy
+    }
+
+    private func addToLibrary(status newStatus: LibraryStatus) {
+        status = newStatus
+        progress = 0
+        persistEntry(force: true)
+
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.84)) {
+            toast = DetailToast(
+                text: newStatus == .planning
+                    ? "《\(anime.title)》已加入想看"
+                    : "《\(anime.title)》已加入在看"
+            )
+        }
+    }
+
+    private func syncFromStore() {
+        guard let entry = library.entry(for: anime.id) else { return }
+        progress = entry.progress
+        isFavorite = entry.isFavorite
+        status = entry.status
+        userScore = entry.userScore
+        notes = entry.notes
+    }
+
+    private func persistEntry(force: Bool = false) {
+        let alreadyInLibrary = library.entry(for: anime.id) != nil
+        guard force || alreadyInLibrary || progress > 0 || isFavorite else { return }
+
+        var updated = anime
+        updated.progress = progress
+        updated.isFavorite = isFavorite
+        updated.status = status
+        updated.userScore = userScore
+        updated.notes = notes
+
+        if progress >= total {
+            updated.status = .completed
+        } else if updated.status == .planning && progress > 0 {
+            updated.status = .watching
+        }
+
+        library.upsert(updated)
+    }
 }
 
 private struct DetailToast: Identifiable {
     let id = UUID()
     let text: String
-    let undo: (() -> Void)?
+    var undo: (() -> Void)? = nil
 }

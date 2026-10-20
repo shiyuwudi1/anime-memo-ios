@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum LibraryStatus: String, CaseIterable, Identifiable, Hashable {
+enum LibraryStatus: String, CaseIterable, Identifiable, Hashable, Codable {
     case watching
     case planning
     case completed
@@ -30,14 +30,15 @@ enum LibraryStatus: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-struct MockAnime: Identifiable, Hashable {
-    let id: String
+struct MockAnime: Identifiable, Hashable, Codable {
+    var id: String
     var title: String
     var originalTitle: String
     var seasonLabel: String
     var progress: Int
     var total: Int
     var nextEpisode: String?
+    var nextEpisodeDateString: String? = nil
     var score: Double
     var format: String
     var year: Int
@@ -45,8 +46,15 @@ struct MockAnime: Identifiable, Hashable {
     var synopsis: String
     var poster: PosterStyle
     var status: LibraryStatus
+    var isFavorite: Bool = false
+    var userScore: Double? = nil
+    var notes: String = ""
     var isMovie: Bool = false
     var runtime: Int = 24
+    var tmdbID: Int?
+    var mediaType: String?
+    var seasonNumber: Int?
+    var posterURL: URL?
 
     var progressText: String {
         isMovie ? (progress >= 1 ? "已看完" : "未看") : "第 \(progress) 话 / 共 \(total) 话"
@@ -55,6 +63,19 @@ struct MockAnime: Identifiable, Hashable {
     var progressFraction: Double {
         guard total > 0 else { return 0 }
         return min(Double(progress) / Double(total), 1)
+    }
+
+    var isAiringToday: Bool {
+        guard let nextEpisodeDateString else {
+            // Mock entries have a display-only next episode.
+            return nextEpisode != nil
+        }
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return nextEpisodeDateString == formatter.string(from: .now)
     }
 
     static let frieren = MockAnime(
@@ -171,4 +192,148 @@ struct MockAnime: Identifiable, Hashable {
     ]
 
     static let all: [MockAnime] = library
+
+    static var debugRemoteFrieren: MockAnime {
+        from(summary: TMDBMediaSummary(
+            id: 209867,
+            mediaTypeRaw: "tv",
+            title: "葬送的芙莉莲",
+            name: nil,
+            originalTitle: nil,
+            originalName: "葬送のフリーレン",
+            overview: nil,
+            posterPath: nil,
+            backdropPath: nil,
+            releaseDate: nil,
+            firstAirDate: "2023-09-29",
+            voteAverage: 8.8,
+            genreIDs: [16],
+            originalLanguage: "ja"
+        ))
+    }
+
+    static func from(summary: TMDBMediaSummary) -> MockAnime {
+        let isMovie = summary.mediaType == .movie
+        let type = summary.mediaType ?? .tv
+        return MockAnime(
+            id: "\(type.rawValue)-\(summary.id)",
+            title: summary.displayTitle,
+            originalTitle: summary.displayOriginalTitle ?? "",
+            seasonLabel: isMovie ? "剧场版" : "TV",
+            progress: 0,
+            total: 0,
+            nextEpisode: nil,
+            score: summary.voteAverage ?? 0,
+            format: isMovie ? "剧场版" : "TV",
+            year: year(from: summary.dateString),
+            genres: [],
+            synopsis: summary.overview ?? "",
+            poster: fallbackPoster(for: summary.id),
+            status: .planning,
+            isMovie: isMovie,
+            runtime: isMovie ? 0 : 24,
+            tmdbID: summary.id,
+            mediaType: type.rawValue,
+            seasonNumber: nil,
+            posterURL: TMDBImage.url(summary.posterPath, size: "w500")
+        )
+    }
+
+    static func from(tv detail: TMDBTVDetail, season: TMDBSeasonSummary) -> MockAnime {
+        let seasonLabel = season.seasonNumber == 0 ? "特别篇/OVA" : "第 \(season.seasonNumber) 季"
+        let nextDateString = detail.nextEpisodeToAir?.seasonNumber == season.seasonNumber
+            ? detail.nextEpisodeToAir?.airDate
+            : nil
+        return MockAnime(
+            id: "tv-\(detail.id)-s\(season.seasonNumber)",
+            title: detail.displayTitle,
+            originalTitle: detail.displayOriginalTitle ?? "",
+            seasonLabel: seasonLabel,
+            progress: 0,
+            total: season.episodeCount,
+            nextEpisode: nextEpisodeText(for: detail, season: season),
+            nextEpisodeDateString: nextDateString,
+            score: detail.voteAverage,
+            format: "TV",
+            year: year(from: detail.firstAirDate),
+            genres: detail.genres.map(\.name),
+            synopsis: detail.overview ?? "",
+            poster: fallbackPoster(for: detail.id),
+            status: .planning,
+            isMovie: false,
+            runtime: 24,
+            tmdbID: detail.id,
+            mediaType: "tv",
+            seasonNumber: season.seasonNumber,
+            posterURL: TMDBImage.url(season.posterPath ?? detail.posterPath, size: "w500")
+        )
+    }
+
+    static func from(movie detail: TMDBMovieDetail) -> MockAnime {
+        MockAnime(
+            id: "movie-\(detail.id)",
+            title: detail.displayTitle,
+            originalTitle: detail.displayOriginalTitle ?? "",
+            seasonLabel: "剧场版",
+            progress: 0,
+            total: 1,
+            nextEpisode: nil,
+            score: detail.voteAverage,
+            format: "剧场版",
+            year: year(from: detail.releaseDate),
+            genres: detail.genres.map(\.name),
+            synopsis: detail.overview ?? "",
+            poster: fallbackPoster(for: detail.id),
+            status: .planning,
+            isMovie: true,
+            runtime: detail.runtime ?? 0,
+            tmdbID: detail.id,
+            mediaType: "movie",
+            seasonNumber: nil,
+            posterURL: TMDBImage.url(detail.posterPath, size: "w500")
+        )
+    }
+
+    private static func fallbackPoster(for id: Int) -> PosterStyle {
+        let styles = PosterStyle.allCases
+        guard !styles.isEmpty else { return .frieren }
+        return styles[abs(id) % styles.count]
+    }
+
+    private static func year(from dateString: String?) -> Int {
+        guard let dateString, dateString.count >= 4 else { return 0 }
+        return Int(dateString.prefix(4)) ?? 0
+    }
+
+    private static func nextEpisodeText(for detail: TMDBTVDetail, season: TMDBSeasonSummary) -> String? {
+        guard
+            let next = detail.nextEpisodeToAir,
+            next.seasonNumber == season.seasonNumber,
+            let dateString = next.airDate
+        else {
+            return nil
+        }
+
+        let localCalendarFormatter = DateFormatter()
+        localCalendarFormatter.locale = Locale(identifier: "en_US_POSIX")
+        localCalendarFormatter.timeZone = .current
+        localCalendarFormatter.dateFormat = "yyyy-MM-dd"
+
+        if dateString == localCalendarFormatter.string(from: .now) {
+            return "第 \(next.episodeNumber) 话 · 今天更新"
+        }
+
+        let input = DateFormatter()
+        input.locale = Locale(identifier: "en_US_POSIX")
+        input.timeZone = TimeZone(secondsFromGMT: 0)
+        input.dateFormat = "yyyy-MM-dd"
+
+        guard let date = input.date(from: dateString) else { return nil }
+
+        let output = DateFormatter()
+        output.locale = Locale(identifier: "zh_CN")
+        output.timeZone = TimeZone(secondsFromGMT: 0)
+        output.dateFormat = "M月d日"
+        return "第 \(next.episodeNumber) 话 · \(output.string(from: date))"
+    }
 }

@@ -3,6 +3,8 @@ import SwiftUI
 @main
 struct AnimeMemoApp: App {
     @State private var router: AppRouter
+    @State private var library = LibraryStore()
+    @AppStorage("appearance") private var appearance = "system"
 
     init() {
         let tab = UserDefaults.standard.string(forKey: "tab")
@@ -18,6 +20,16 @@ struct AnimeMemoApp: App {
         WindowGroup {
             rootContent
                 .environment(router)
+                .environment(library)
+                .preferredColorScheme(preferredColorScheme)
+        }
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        switch appearance {
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil
         }
     }
 
@@ -32,6 +44,10 @@ struct AnimeMemoApp: App {
         case "detail":
             NavigationStack {
                 AnimeDetailView(anime: .frieren)
+            }
+        case "remoteDetail":
+            NavigationStack {
+                RemoteAnimeDetailLoader(summary: .debugRemoteFrieren)
             }
         case "settings":
             SettingsView()

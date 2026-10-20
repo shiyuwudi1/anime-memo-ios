@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum PosterStyle: String, CaseIterable, Hashable {
+enum PosterStyle: String, CaseIterable, Hashable, Codable {
     case frieren
     case dandadan
     case apothecary
@@ -74,31 +74,45 @@ enum PosterStyle: String, CaseIterable, Hashable {
 
 struct PosterArtwork: View {
     let style: PosterStyle
+    var posterURL: URL? = nil
     var cornerRadius: CGFloat = AppTheme.posterRadius
     var showsLabel: Bool = true
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                LinearGradient(
-                    colors: style.colors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                if let posterURL {
+                    AsyncImage(
+                        url: posterURL,
+                        transaction: Transaction(animation: .easeIn(duration: 0.2))
+                    ) { phase in
+                        if case .success(let image) = phase {
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            gradient
+                        }
+                    }
+                } else {
+                    gradient
+                }
 
-                Circle()
-                    .fill(.white.opacity(0.14))
-                    .frame(width: 180, height: 180)
-                    .blur(radius: 2)
-                    .offset(x: 70, y: -90)
+                if posterURL == nil {
+                    Circle()
+                        .fill(.white.opacity(0.14))
+                        .frame(width: 180, height: 180)
+                        .blur(radius: 2)
+                        .offset(x: 70, y: -90)
 
-                Circle()
-                    .fill(.black.opacity(0.16))
-                    .frame(width: 220, height: 220)
-                    .blur(radius: 18)
-                    .offset(x: -80, y: 120)
+                    Circle()
+                        .fill(.black.opacity(0.16))
+                        .frame(width: 220, height: 220)
+                        .blur(radius: 18)
+                        .offset(x: -80, y: 120)
+                }
 
-                if showsLabel {
+                if showsLabel && posterURL == nil {
                     VStack(spacing: 8) {
                         Spacer()
                         Text(style.overlayText)
@@ -115,13 +129,15 @@ struct PosterArtwork: View {
                     }
                 }
 
-                Image(systemName: style.symbol)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.88))
-                    .padding(10)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(10)
+                if posterURL == nil {
+                    Image(systemName: style.symbol)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.88))
+                        .padding(10)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(10)
+                }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -130,5 +146,13 @@ struct PosterArtwork: View {
                     .strokeBorder(.white.opacity(0.16), lineWidth: 0.8)
             }
         }
+    }
+
+    private var gradient: some View {
+        LinearGradient(
+            colors: style.colors,
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }

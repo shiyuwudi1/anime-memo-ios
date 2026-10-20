@@ -2,22 +2,27 @@ import SwiftUI
 
 struct EditEntrySheet: View {
     let anime: MockAnime
-    @Binding var progress: Int
+    let onSave: (LibraryStatus, Int, Double?, String, Bool) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
     @State private var draftProgress: Int
     @State private var status: LibraryStatus
     @State private var score: Double
-    @State private var notes = ""
-    @State private var isFavorite = false
+    @State private var notes: String
+    @State private var isFavorite: Bool
 
-    init(anime: MockAnime, progress: Binding<Int>) {
+    init(
+        anime: MockAnime,
+        onSave: @escaping (LibraryStatus, Int, Double?, String, Bool) -> Void
+    ) {
         self.anime = anime
-        _progress = progress
-        _draftProgress = State(initialValue: progress.wrappedValue)
+        self.onSave = onSave
+        _draftProgress = State(initialValue: anime.progress)
         _status = State(initialValue: anime.status)
-        _score = State(initialValue: anime.score)
+        _score = State(initialValue: anime.userScore ?? 0)
+        _notes = State(initialValue: anime.notes)
+        _isFavorite = State(initialValue: anime.isFavorite)
     }
 
     private var total: Int { max(anime.total, 1) }
@@ -103,7 +108,13 @@ struct EditEntrySheet: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
-                        progress = draftProgress
+                        onSave(
+                            status,
+                            draftProgress,
+                            score > 0 ? score : nil,
+                            notes,
+                            isFavorite
+                        )
                         dismiss()
                     }
                     .fontWeight(.semibold)

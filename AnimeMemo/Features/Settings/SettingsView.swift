@@ -1,11 +1,17 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(LibraryStore.self) private var library
     @AppStorage("appearance") private var appearance = "system"
-    @AppStorage("titleLanguage") private var titleLanguage = "zh"
-    @State private var showPlaceholder = false
+    @State private var exportDocument: LibraryBackupDocument?
+    @State private var isExporting = false
+    @State private var isImporting = false
     @State private var showClearConfirmation = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var showAlert = false
 
     var body: some View {
         NavigationStack {
@@ -17,23 +23,17 @@ struct SettingsView: View {
                         Text("深色").tag("dark")
                     }
                     .pickerStyle(.segmented)
-
-                    Picker("标题语言", selection: $titleLanguage) {
-                        Text("中文优先").tag("zh")
-                        Text("原文").tag("original")
-                        Text("英文").tag("en")
-                    }
                 }
 
                 Section("数据") {
                     Button {
-                        showPlaceholder = true
+                        exportBackup()
                     } label: {
                         Label("导出备份", systemImage: "square.and.arrow.up")
                     }
 
                     Button {
-                        showPlaceholder = true
+                        isImporting = true
                     } label: {
                         Label("导入备份", systemImage: "square.and.arrow.down")
                     }
@@ -76,17 +76,72 @@ struct SettingsView: View {
                     }
                 }
             }
-            .alert("备份功能即将接入", isPresented: $showPlaceholder) {
+            .alert(alertTitle, isPresented: $showAlert) {
                 Button("好", role: .cancel) {}
             } message: {
-                Text("数据层接入后会启用 JSON 导出/导入。现在先用模拟数据验证界面。")
+                Text(alertMessage)
+            }
+            .fileExporter(
+                isPresented: $isExporting,
+                document: exportDocument,
+                contentType: .json,
+                defaultFilename: "AnimeMemo-Backup"
+            ) { result in
+                switch result {
+                case .success:
+                    presentAlert("导出成功", "备份文件已保存。")
+                case .failure(let error):
+                    presentAlert("导出失败", error.localizedDescription)
+                }
+            }
+            .fileImporter(
+                isPresented: $isImporting,
+                allowedContentTypes: [.json]
+            ) { result in
+                switch result {
+                case .success(let url):
+                    do {
+                        let accessing = url.startAccessingSecurityScopedResource()
+                        defer {
+                            if accessing {
+                                url.stopAccessingSecurityScopedResource()
+                            }
+                        }
+                        let data = try Data(contentsOf: url)
+                        try library.importData(data)
+                        presentAlert("导入成功", "已导入 \(library.entries.count) 部作品。")
+                    } catch {
+                        presentAlert("导入失败", error.localizedDescription)
+                    }
+                case .failure(let error):
+                    presentAlert("导入失败", error.localizedDescription)
+                }
             }
             .confirmationDialog("确定清空全部数据？", isPresented: $showClearConfirmation, titleVisibility: .visible) {
-                Button("清空", role: .destructive) {}
+                Button("清空", role: .destructive) {
+                    library.clear()
+                    presentAlert("已清空", "本地片库已清空。")
+                }
                 Button("取消", role: .cancel) {}
             } message: {
-                Text("这个操作不可撤销。")
+                Text("这个操作不可撤销。建议先导出备份。")
             }
         }
+    }
+
+    private func exportBackup() {
+        do {
+            let data = try library.exportData()
+            exportDocument = LibraryBackupDocument(data: data)
+            isExporting = true
+        } catch {
+            presentAlert("导出失败", error.localizedDescription)
+        }
+    }
+
+    private func presentAlert(_ title: String, _ message: String) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
     }
 }
