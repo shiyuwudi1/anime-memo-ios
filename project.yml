@@ -1,0 +1,57 @@
+name: AnimeMemo
+
+options:
+  bundleIdPrefix: com.shiyu
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  xcodeVersion: "27.1"
+
+configFiles:
+  Debug: Secrets.xcconfig
+  Release: Secrets.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1"
+    ENABLE_PREVIEWS: YES
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    GENERATE_INFOPLIST_FILE: NO
+    INFOPLIST_FILE: AnimeMemo/Resources/Info.plist
+
+targets:
+  AnimeMemo:
+    type: application
+    platform: iOS
+    sources:
+      - path: AnimeMemo
+        excludes:
+          - Resources/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shiyu.animememo
+        PRODUCT_NAME: AnimeMemo
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    scheme:
+      testTargets:
+        - AnimeMemoTests
+      gatherCoverageData: true
+
+  AnimeMemoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AnimeMemoTests
+    dependencies:
+      - target: AnimeMemo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shiyu.animememo.tests
+        GENERATE_INFOPLIST_FILE: YES
