@@ -28,6 +28,7 @@
 		BCC9FAC8F0FE3ACE532F298B /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 034E3F36DD28D6B2C47C1130 /* AppRouter.swift */; };
 		BE84D04A5D5E9F8620C6DA09 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F13EE3EE03ED1AA4FE7633 /* AppTheme.swift */; };
 		BF260B4EE85CF7F2DF92AAAC /* LibraryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235A0ED2E395B74866D12389 /* LibraryStoreTests.swift */; };
+		C151917D6F598EC0E3ED1EB2 /* NavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B96459A0E8511A56BAB009A /* NavigationUITests.swift */; };
 		C5E036FAB159FA83D969D121 /* MockAnimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DA19101877EB90EFC1AAC5 /* MockAnimeTests.swift */; };
 		CB07E6885DAA193D46EC81C2 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76D83B8B3E51478CC972B8D /* AppConfiguration.swift */; };
 		D4C032EE0E9F222855F7576A /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81500F2A38C66719078BB277 /* GlassButton.swift */; };
@@ -39,6 +40,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		C3B50E86C9EDCF7EDC0737F0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 204A1310F081146485C55351 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 71E9D2496688483CA41DC3ED;
+			remoteInfo = AnimeMemo;
+		};
 		E8269EED3D9AAA202AFE543F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 204A1310F081146485C55351 /* Project object */;
@@ -65,6 +73,7 @@
 		672771C8AE5EEFC49A91F8A9 /* GlassToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassToast.swift; sourceTree = "<group>"; };
 		6BC19AAF399C7EB44263EECC /* GlassSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassSurface.swift; sourceTree = "<group>"; };
 		6C54BF1276AAAA365EE92E3F /* EditEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditEntrySheet.swift; sourceTree = "<group>"; };
+		7B96459A0E8511A56BAB009A /* NavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationUITests.swift; sourceTree = "<group>"; };
 		81500F2A38C66719078BB277 /* GlassButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassButton.swift; sourceTree = "<group>"; };
 		820893C4AE340C30595986AE /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		86B5E9EB11DCC2BEF35E841F /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
@@ -79,8 +88,9 @@
 		DFCD8E228CA02AC0516208EA /* PosterArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PosterArtwork.swift; sourceTree = "<group>"; };
 		EC9D327B4A341808D6F1D20F /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		F080C94B902DF438F9648B6C /* RemoteAnimeDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteAnimeDetailLoader.swift; sourceTree = "<group>"; };
+		F6533C47E672C7C86E541EA8 /* AnimeMemoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AnimeMemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F76D83B8B3E51478CC972B8D /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
-		"TEMP_E91F15FE-3D54-45CF-923C-5BBCF4E1D55A" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -100,6 +110,14 @@
 				59719ACFF54A3EF5F256F8C5 /* TMDBModelTests.swift */,
 			);
 			path = AnimeMemoTests;
+			sourceTree = "<group>";
+		};
+		2910FC39D29F79E642BBEA76 /* AnimeMemoUITests */ = {
+			isa = PBXGroup;
+			children = (
+				7B96459A0E8511A56BAB009A /* NavigationUITests.swift */,
+			);
+			path = AnimeMemoUITests;
 			sourceTree = "<group>";
 		};
 		36D767E237C8DD8DA12B1059 /* Core */ = {
@@ -132,6 +150,7 @@
 			children = (
 				A076BBE021E3A60CFD3686F5 /* AnimeMemo */,
 				10C7CEB3735C72F3E611DEAA /* AnimeMemoTests */,
+				2910FC39D29F79E642BBEA76 /* AnimeMemoUITests */,
 				A0D06D04E4C380C520708DC8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -212,6 +231,7 @@
 			children = (
 				DDC05BDFA820253DC2F129BC /* AnimeMemo.app */,
 				24C20E6EDF54217390BFD559 /* AnimeMemoTests.xctest */,
+				F6533C47E672C7C86E541EA8 /* AnimeMemoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -265,10 +285,10 @@
 			path = Detail;
 			sourceTree = "<group>";
 		};
-		"TEMP_B8798AC8-5889-4204-8917-43797D2F788E" /* my-anime-memo-ios */ = {
+		"TEMP_8FD34AB3-0DAB-4278-9A4E-19FBD0B79DB6" /* my-anime-memo-ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_E91F15FE-3D54-45CF-923C-5BBCF4E1D55A" /* Secrets.xcconfig */,
+				"TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */,
 			);
 			path = "my-anime-memo-ios";
 			sourceTree = "<group>";
@@ -312,6 +332,24 @@
 			productReference = DDC05BDFA820253DC2F129BC /* AnimeMemo.app */;
 			productType = "com.apple.product-type.application";
 		};
+		FF7918733528A5377850FE34 /* AnimeMemoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76F6988B1987F4AB9920DB2D /* Build configuration list for PBXNativeTarget "AnimeMemoUITests" */;
+			buildPhases = (
+				42A0BC536DB18D3E5A50C3F3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				ECB005013D0143D6BE9C4CD0 /* PBXTargetDependency */,
+			);
+			name = AnimeMemoUITests;
+			packageProductDependencies = (
+			);
+			productName = AnimeMemoUITests;
+			productReference = F6533C47E672C7C86E541EA8 /* AnimeMemoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -328,6 +366,11 @@
 					71E9D2496688483CA41DC3ED = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
+					};
+					FF7918733528A5377850FE34 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 71E9D2496688483CA41DC3ED;
 					};
 				};
 			};
@@ -347,6 +390,7 @@
 			targets = (
 				71E9D2496688483CA41DC3ED /* AnimeMemo */,
 				0A11AB0B6839370C7214DEF2 /* AnimeMemoTests */,
+				FF7918733528A5377850FE34 /* AnimeMemoUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -395,6 +439,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		42A0BC536DB18D3E5A50C3F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C151917D6F598EC0E3ED1EB2 /* NavigationUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E9A2720C38048CF084748AC8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -408,6 +460,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		ECB005013D0143D6BE9C4CD0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 71E9D2496688483CA41DC3ED /* AnimeMemo */;
+			targetProxy = C3B50E86C9EDCF7EDC0737F0 /* PBXContainerItemProxy */;
+		};
 		FA67403A68748B0AAAC1D446 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 71E9D2496688483CA41DC3ED /* AnimeMemo */;
@@ -435,7 +492,7 @@
 		};
 		07228AB560A475676C958CF5 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_E91F15FE-3D54-45CF-923C-5BBCF4E1D55A" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -502,7 +559,7 @@
 		};
 		2A85E173E0AC6CDAC97DC349 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_E91F15FE-3D54-45CF-923C-5BBCF4E1D55A" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -574,6 +631,40 @@
 			};
 			name = Debug;
 		};
+		72625A27B828908056F73AEC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.shiyu.animememo.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AnimeMemo;
+			};
+			name = Release;
+		};
+		72CC96D0C30FEA591D242C65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.shiyu.animememo.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AnimeMemo;
+			};
+			name = Debug;
+		};
 		79923C00AF79836D19D4BD24 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -633,6 +724,15 @@
 			buildConfigurations = (
 				79923C00AF79836D19D4BD24 /* Debug */,
 				04C06996B7783548ED253716 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		76F6988B1987F4AB9920DB2D /* Build configuration list for PBXNativeTarget "AnimeMemoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72CC96D0C30FEA591D242C65 /* Debug */,
+				72625A27B828908056F73AEC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -42,6 +42,7 @@ targets:
     scheme:
       testTargets:
         - AnimeMemoTests
+        - AnimeMemoUITests
       gatherCoverageData: true
 
   AnimeMemoTests:
@@ -55,3 +56,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.shiyu.animememo.tests
         GENERATE_INFOPLIST_FILE: YES
+
+  AnimeMemoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: AnimeMemoUITests
+    dependencies:
+      - target: AnimeMemo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shiyu.animememo.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AnimeMemo

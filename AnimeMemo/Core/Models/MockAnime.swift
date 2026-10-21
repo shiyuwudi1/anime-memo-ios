@@ -92,7 +92,8 @@ struct MockAnime: Identifiable, Hashable, Codable {
         genres: ["奇幻", "冒险", "治愈"],
         synopsis: "在勇者一行击败魔王之后，精灵魔法使芙莉莲踏上了重新理解人类、记住同伴的旅程。时间对她而言近乎无限，而每一次相遇都变得格外珍贵。",
         poster: .frieren,
-        status: .watching
+        status: .watching,
+        posterURL: TMDBImage.url("/1TtrtRIwXz5BB0gXEl8zgBypl9c.jpg")
     )
 
     static let dandadan = MockAnime(
@@ -109,7 +110,8 @@ struct MockAnime: Identifiable, Hashable, Codable {
         genres: ["超自然", "喜剧", "战斗"],
         synopsis: "相信幽灵的少女与相信外星人的少年，在一场荒诞的赌局后一起被卷入超自然事件。战斗、搞笑和青春，全都不讲道理地混在一起。",
         poster: .dandadan,
-        status: .planning
+        status: .planning,
+        posterURL: TMDBImage.url("/dRNNUYCJB9gACxqiIbbDLOkpFB2.jpg")
     )
 
     static let apothecary = MockAnime(
@@ -126,7 +128,8 @@ struct MockAnime: Identifiable, Hashable, Codable {
         genres: ["古风", "推理", "宫廷"],
         synopsis: "在后宫做杂役的少女猫猫，凭借对药理的狂热与敏锐的观察力，卷入了宫廷里一桩又一桩谜案。",
         poster: .apothecary,
-        status: .completed
+        status: .completed,
+        posterURL: TMDBImage.url("/nUFTbH417TqmCbw2b2mPSAESoTb.jpg")
     )
 
     static let spy = MockAnime(
@@ -143,7 +146,8 @@ struct MockAnime: Identifiable, Hashable, Codable {
         genres: ["喜剧", "动作", "日常"],
         synopsis: "间谍、杀手和超能力少女组成了一个假家庭。任务之外，他们正在认真经营一段真实的亲子关系。",
         poster: .spy,
-        status: .paused
+        status: .paused,
+        posterURL: TMDBImage.url("/xkEGd9GF3oty89xDiXMGJm6pGQL.jpg")
     )
 
     static let solo = MockAnime(
@@ -160,7 +164,8 @@ struct MockAnime: Identifiable, Hashable, Codable {
         genres: ["战斗", "奇幻", "成长"],
         synopsis: "从最弱猎人开始，成振宇在一次次生死边缘的挑战中不断变强，也逐渐触碰到这个世界真正的规则。",
         poster: .solo,
-        status: .watching
+        status: .watching,
+        posterURL: TMDBImage.url("/9vAmQQD1Ewus7kqwsGgeoM7sjE6.jpg")
     )
 
     static let lookback = MockAnime(
@@ -179,7 +184,8 @@ struct MockAnime: Identifiable, Hashable, Codable {
         poster: .lookback,
         status: .completed,
         isMovie: true,
-        runtime: 58
+        runtime: 58,
+        posterURL: TMDBImage.url("/5WhrCOmnZXoW8ku7XxT6zkI88zS.jpg")
     )
 
     static let library: [MockAnime] = [

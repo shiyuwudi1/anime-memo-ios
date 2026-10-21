@@ -15,8 +15,15 @@ final class LibraryStore {
 
     init(fileURL: URL? = nil) {
         self.fileURL = fileURL ?? Self.defaultFileURL()
-        self.entries = Self.load(from: self.fileURL) ?? Self.seedEntries()
-        if !FileManager.default.fileExists(atPath: self.fileURL.path) {
+
+        if let loaded = Self.load(from: self.fileURL) {
+            let enriched = loaded.map(Self.enrichingMockMetadata)
+            self.entries = enriched
+            if enriched != loaded {
+                persist()
+            }
+        } else {
+            self.entries = Self.seedEntries()
             persist()
         }
     }
@@ -168,5 +175,20 @@ final class LibraryStore {
         #else
         return []
         #endif
+    }
+
+    private static func enrichingMockMetadata(_ entry: MockAnime) -> MockAnime {
+        guard
+            entry.tmdbID == nil,
+            let mock = MockAnime.library.first(where: { $0.id == entry.id })
+        else {
+            return entry
+        }
+
+        var enriched = entry
+        if enriched.posterURL == nil {
+            enriched.posterURL = mock.posterURL
+        }
+        return enriched
     }
 }

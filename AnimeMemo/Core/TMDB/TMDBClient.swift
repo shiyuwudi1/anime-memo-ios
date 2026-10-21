@@ -5,6 +5,7 @@ enum TMDBError: Error, LocalizedError, Sendable {
     case invalidURL
     case invalidResponse
     case httpStatus(Int)
+    case network(String)
     case decoding(String)
 
     var errorDescription: String? {
@@ -17,6 +18,8 @@ enum TMDBError: Error, LocalizedError, Sendable {
             return "TMDB 返回了无法识别的响应。"
         case .httpStatus(let code):
             return "TMDB 请求失败（HTTP \(code)）。"
+        case .network(let message):
+            return "无法连接 TMDB。\(message) 请检查网络，或在 iPhone 上开启代理/VPN 后重试。"
         case .decoding(let message):
             return "TMDB 数据解析失败：\(message)"
         }
@@ -35,9 +38,17 @@ actor TMDBClient {
         self.decoder = JSONDecoder()
     }
 
-    static func makeFromConfiguration(session: URLSession = .shared) -> TMDBClient? {
+    static func makeFromConfiguration(session: URLSession? = nil) -> TMDBClient? {
         guard let token = AppConfiguration.tmdbReadAccessToken else { return nil }
-        return TMDBClient(token: token, session: session)
+        return TMDBClient(token: token, session: session ?? makeDefaultSession())
+    }
+
+    private static func makeDefaultSession() -> URLSession {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 10
+        configuration.timeoutIntervalForResource = 20
+        configuration.waitsForConnectivity = false
+        return URLSession(configuration: configuration)
     }
 
     func searchMulti(query: String, page: Int = 1) async throws -> TMDBPage<TMDBMediaSummary> {
@@ -101,10 +112,26 @@ actor TMDBClient {
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.timeoutInterval = 10
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let (data, response) = try await session.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch let error as URLError {
+            switch error.code {
+            case .timedOut:
+                throw TMDBError.network("连接超时。")
+            case .notConnectedToInternet:
+                throw TMDBError.network("当前设备没有网络。")
+            case .cannotFindHost, .cannotConnectToHost, .networkConnectionLost:
+                throw TMDBError.network("服务器无法访问。")
+            default:
+                throw TMDBError.network(error.localizedDescription)
+            }
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw TMDBError.invalidResponse

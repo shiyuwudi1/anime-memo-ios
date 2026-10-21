@@ -48,7 +48,7 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, AppTheme.pagePadding)
                 .padding(.top, 6)
-                .padding(.bottom, 36)
+                .padding(.bottom, 120)
             }
             .scrollIndicators(.hidden)
             .background(AppBackground())
@@ -64,9 +64,6 @@ struct HomeView: View {
                     }
                     .accessibilityLabel("设置")
                 }
-            }
-            .navigationDestination(for: MockAnime.self) { anime in
-                AnimeDetailView(anime: anime)
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
@@ -176,7 +173,7 @@ struct HomeView: View {
             ScrollView(.horizontal) {
                 HStack(alignment: .top, spacing: 12) {
                     ForEach(entries) { anime in
-                        NavigationLink(value: anime) {
+                        NavigationLink(destination: AnimeDetailView(anime: anime)) {
                             VStack(alignment: .leading, spacing: 7) {
                                 PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
                                     .frame(width: 104, height: 148)
@@ -249,7 +246,7 @@ private struct ContinueWatchingRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            NavigationLink(value: anime) {
+            NavigationLink(destination: AnimeDetailView(anime: anime)) {
                 HStack(spacing: 14) {
                     PosterArtwork(style: anime.poster, posterURL: anime.posterURL, cornerRadius: 12, showsLabel: false)
                         .frame(width: 62, height: 90)
@@ -300,7 +297,7 @@ private struct TodayUpdateCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            NavigationLink(value: anime) {
+            NavigationLink(destination: AnimeDetailView(anime: anime)) {
                 PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
                     .frame(width: 152, height: 214)
             }

@@ -9,6 +9,7 @@ struct SearchView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var didLoadDiscover = false
+    @State private var isOffline = false
 
     private let client = TMDBClient.makeFromConfiguration()
 
@@ -45,13 +46,20 @@ struct SearchView: View {
     }
 
     private var discoveryItems: [MockAnime] {
-        usesRemote ? remoteDiscover : MockAnime.all
+        if usesRemote && !remoteDiscover.isEmpty {
+            return remoteDiscover
+        }
+        return MockAnime.all
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    if isOffline {
+                        offlineBanner
+                    }
+
                     GlassChipRow(spacing: 8) {
                         ForEach(SearchFilter.allCases) { item in
                             GlassChip(
@@ -65,9 +73,17 @@ struct SearchView: View {
                         }
                     }
 
-                    if isLoading {
-                        ProgressView("正在搜索 TMDB…")
-                            .frame(maxWidth: .infinity, minHeight: 260)
+                    if isLoading && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        VStack(spacing: 14) {
+                            ProgressView("正在连接 TMDB…")
+                            Button("先看本地示例") {
+                                useOfflineFallback()
+                            }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.accent)
+                            .buttonStyle(.plain)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 260)
                     } else if let errorMessage {
                         VStack(spacing: 14) {
                             ContentUnavailableView(
@@ -84,6 +100,9 @@ struct SearchView: View {
                         }
                         .frame(minHeight: 280)
                     } else if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        if isLoading {
+                            inlineLoadingBanner
+                        }
                         discoveryContent
                     } else if results.isEmpty {
                         ContentUnavailableView(
@@ -98,7 +117,7 @@ struct SearchView: View {
                 }
                 .padding(.horizontal, AppTheme.pagePadding)
                 .padding(.top, 8)
-                .padding(.bottom, 36)
+                .padding(.bottom, 120)
             }
             .scrollIndicators(.hidden)
             .background(AppBackground())
@@ -109,13 +128,6 @@ struct SearchView: View {
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "搜索番剧、剧场版"
             )
-            .navigationDestination(for: MockAnime.self) { anime in
-                if anime.tmdbID != nil {
-                    RemoteAnimeDetailLoader(summary: anime)
-                } else {
-                    AnimeDetailView(anime: anime)
-                }
-            }
             .task(id: query) {
                 await performSearch()
             }
@@ -149,7 +161,7 @@ struct SearchView: View {
                     spacing: 18
                 ) {
                     ForEach(discoveryItems) { anime in
-                        NavigationLink(value: anime) {
+                        NavigationLink(destination: detailDestination(for: anime)) {
                             VStack(alignment: .leading, spacing: 8) {
                                 PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
                                     .frame(height: 232)
@@ -186,7 +198,7 @@ struct SearchView: View {
 
             VStack(spacing: 0) {
                 ForEach(results) { anime in
-                    NavigationLink(value: anime) {
+                    NavigationLink(destination: detailDestination(for: anime)) {
                         HStack(spacing: 14) {
                             PosterArtwork(style: anime.poster, posterURL: anime.posterURL, cornerRadius: 10, showsLabel: false)
                                 .frame(width: 58, height: 82)
@@ -235,9 +247,90 @@ struct SearchView: View {
         }
     }
 
+    private var inlineLoadingBanner: some View {
+        HStack(spacing: 8) {
+            ProgressView()
+                .controlSize(.small)
+            Text("正在连接 TMDB，先显示本地示例…")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
+            Button("跳过") {
+                useOfflineFallback()
+            }
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(AppTheme.accent)
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private var offlineBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(AppTheme.accent)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("TMDB 暂不可用")
+                    .font(.caption.weight(.semibold))
+                Text("当前显示本地示例。请检查网络或在 iPhone 上开启代理/VPN。")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 4)
+
+            Button("重试") {
+                retryLoading()
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.accent)
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .glassSurface(.rect(cornerRadius: 16), variant: .regular)
+    }
+
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
             .font(.title3.weight(.bold))
+    }
+
+    private func localResults(for query: String) -> [MockAnime] {
+        MockAnime.all.filter { anime in
+            anime.title.localizedCaseInsensitiveContains(query)
+                || anime.originalTitle.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private func retryLoading() {
+        isOffline = false
+        didLoadDiscover = false
+        errorMessage = nil
+        Task {
+            await performSearch()
+        }
+    }
+
+    private func useOfflineFallback() {
+        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        remoteDiscover = MockAnime.all
+        if !normalized.isEmpty {
+            remoteResults = localResults(for: normalized)
+        }
+        isOffline = true
+        isLoading = false
+        errorMessage = nil
+    }
+
+    @ViewBuilder
+    private func detailDestination(for anime: MockAnime) -> some View {
+        if anime.tmdbID != nil {
+            RemoteAnimeDetailLoader(summary: anime)
+        } else {
+            AnimeDetailView(anime: anime)
+        }
     }
 
     @MainActor
@@ -254,12 +347,19 @@ struct SearchView: View {
 
             do {
                 let page = try await client.discoverAnime()
+                guard !Task.isCancelled else { return }
                 remoteDiscover = map(page.results)
+                isOffline = false
                 isLoading = false
+            } catch is CancellationError {
+                return
             } catch {
+                guard !Task.isCancelled else { return }
                 didLoadDiscover = false
+                remoteDiscover = MockAnime.all
+                isOffline = true
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = nil
             }
             return
         }
@@ -275,14 +375,16 @@ struct SearchView: View {
             let page = try await client.searchMulti(query: normalized)
             guard !Task.isCancelled else { return }
             remoteResults = map(page.results)
+            isOffline = false
             isLoading = false
         } catch is CancellationError {
             return
         } catch {
             guard !Task.isCancelled else { return }
-            remoteResults = []
+            remoteResults = localResults(for: normalized)
+            isOffline = true
             isLoading = false
-            errorMessage = error.localizedDescription
+            errorMessage = nil
         }
     }
 

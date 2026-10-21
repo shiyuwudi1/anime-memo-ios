@@ -78,6 +78,8 @@ struct PosterArtwork: View {
     var cornerRadius: CGFloat = AppTheme.posterRadius
     var showsLabel: Bool = true
 
+    @State private var imageLoaded = false
+
     var body: some View {
         GeometryReader { proxy in
             ZStack {
@@ -90,6 +92,9 @@ struct PosterArtwork: View {
                             image
                                 .resizable()
                                 .scaledToFill()
+                                .onAppear {
+                                    imageLoaded = true
+                                }
                         } else {
                             gradient
                         }
@@ -112,7 +117,7 @@ struct PosterArtwork: View {
                         .offset(x: -80, y: 120)
                 }
 
-                if showsLabel && posterURL == nil {
+                if showsLabel && !imageLoaded {
                     VStack(spacing: 8) {
                         Spacer()
                         Text(style.overlayText)
@@ -129,7 +134,7 @@ struct PosterArtwork: View {
                     }
                 }
 
-                if posterURL == nil {
+                if !imageLoaded {
                     Image(systemName: style.symbol)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.white.opacity(0.88))
@@ -144,6 +149,9 @@ struct PosterArtwork: View {
             .overlay {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .strokeBorder(.white.opacity(0.16), lineWidth: 0.8)
+            }
+            .onChange(of: posterURL) { _, _ in
+                imageLoaded = false
             }
         }
     }

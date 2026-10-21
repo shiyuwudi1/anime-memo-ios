@@ -94,7 +94,7 @@ struct LibraryView: View {
                 } else {
                     List {
                         ForEach(filteredEntries) { anime in
-                            NavigationLink(value: anime) {
+                            NavigationLink(destination: AnimeDetailView(anime: anime)) {
                                 LibraryRow(anime: anime)
                             }
                             .listRowInsets(EdgeInsets(top: 6, leading: AppTheme.pagePadding, bottom: 6, trailing: AppTheme.pagePadding))
@@ -119,16 +119,13 @@ struct LibraryView: View {
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
-                    .contentMargins(.bottom, 80, for: .scrollContent)
+                    .contentMargins(.bottom, 120, for: .scrollContent)
                 }
             }
             .background(AppBackground())
             .navigationTitle("片库")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "在片库中搜索")
-            .navigationDestination(for: MockAnime.self) { anime in
-                AnimeDetailView(anime: anime)
-            }
             .overlay(alignment: .bottom) {
                 if let toast {
                     GlassToast(

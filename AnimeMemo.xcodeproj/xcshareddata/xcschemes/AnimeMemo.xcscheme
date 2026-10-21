@@ -51,6 +51,17 @@
                ReferencedContainer = "container:AnimeMemo.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "FF7918733528A5377850FE34"
+               BuildableName = "AnimeMemoUITests.xctest"
+               BlueprintName = "AnimeMemoUITests"
+               ReferencedContainer = "container:AnimeMemo.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

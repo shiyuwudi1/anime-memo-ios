@@ -14,7 +14,7 @@
 - 首页 / 搜索 / 片库 / 详情 / 编辑 / 设置 / Glass Lab 界面
 - TMDB 真实搜索、TV/电影详情、海报与分季数据已接入
 - 片库本地 JSON 持久化，支持 JSON 导出/导入
-- 12 个单元测试通过（Mock 模型、TMDB DTO、LibraryStore）
+- 12 个单元测试 + 1 个 UI 测试通过（Mock 模型、TMDB DTO、LibraryStore、首页导航）
 - 仍待完善：多季切换、真实“今日更新”筛选、通知/小组件、iCloud
 
 ## 数据源与商用
@@ -48,6 +48,23 @@ open AnimeMemo.xcodeproj
 ```
 
 `Secrets.xcconfig` 已被 `.gitignore` 忽略，不要提交到仓库。
+
+## 真机网络（中国大陆）
+
+`api.themoviedb.org` 在中国大陆通常无法直连。Mac 模拟器正常，是因为 Mac
+本身走代理；iPhone 真机没有代理时会出现搜索一直加载、没有真实海报。
+
+App 现在会在 10 秒超时后自动回退到本地示例，并显示提示，不会无限转圈。
+
+真机开发时可以二选一：
+
+1. iPhone 连 VPN。
+2. 让 iPhone 走 Mac 代理：Mac 代理开启“允许局域网连接”，然后在 iPhone 的
+   Wi-Fi 设置里配置 HTTP 代理，服务器填 Mac 的局域网 IP，端口填代理端口。
+
+如果要上架给中国大陆用户使用，需要部署一个自己的 TMDB 反向代理
+（Cloudflare Worker / Vercel），或者把数据源切换到 Bangumi 等国内可访问的
+API。不要把 TMDB token 直接放进公开客户端。
 
 ## 开发
 
@@ -100,7 +117,8 @@ AnimeMemo/
 
 ## 下一步
 
-1. 多季选择与真实“今日更新”筛选
-2. 通知 / 小组件
-3. iCloud 同步与年度统计
-4. 真机 / TestFlight 验证 Liquid Glass
+1. TMDB 反向代理或 Bangumi 数据源，解决中国大陆真机访问
+2. 多季选择与更准确“今日更新”
+3. 通知 / 小组件
+4. iCloud 同步与年度统计
+5. 真机 / TestFlight 验证 Liquid Glass
