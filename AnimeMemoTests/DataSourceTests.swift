@@ -36,6 +36,47 @@ struct AppConfigurationTests {
     }
 }
 
+struct ProviderAvailabilityTests {
+    private func health(_ provider: MetadataProvider, available: Bool) -> ProviderHealth {
+        ProviderHealth(
+            provider: provider,
+            failureReason: available ? nil : "offline"
+        )
+    }
+
+    @Test
+    func keepsCurrentProviderWhenItWorks() {
+        let results = [
+            health(.tmdb, available: true),
+            health(.bangumi, available: true)
+        ]
+
+        #expect(ProviderHealth.preferredProvider(from: results, current: .bangumi) == .bangumi)
+        #expect(ProviderHealth.preferredProvider(from: results, current: .tmdb) == .tmdb)
+    }
+
+    @Test
+    func fallsBackToTheOnlyWorkingProvider() {
+        let results = [
+            health(.tmdb, available: false),
+            health(.bangumi, available: true)
+        ]
+
+        #expect(ProviderHealth.preferredProvider(from: results, current: .tmdb) == .bangumi)
+        #expect(ProviderHealth.preferredProvider(from: results, current: .bangumi) == .bangumi)
+    }
+
+    @Test
+    func blocksLaunchWhenNeitherProviderWorks() {
+        let results = [
+            health(.tmdb, available: false),
+            health(.bangumi, available: false)
+        ]
+
+        #expect(ProviderHealth.preferredProvider(from: results, current: .tmdb) == nil)
+    }
+}
+
 struct TMDBMediaTypeResolutionTests {
     @Test
     func discoverItemsWithoutMediaTypeDefaultToTV() throws {

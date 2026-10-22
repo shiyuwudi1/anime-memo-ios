@@ -67,11 +67,13 @@ struct AnimeMemoApp: App {
             NavigationStack {
                 GlassLabView()
             }
-        default:
+        case "home":
             RootTabView()
+        default:
+            ProviderLaunchGate()
         }
         #else
-        RootTabView()
+        ProviderLaunchGate()
         #endif
     }
 }

@@ -12,6 +12,7 @@
 		1AF86546376AE1E726F7A88C /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34258C8104F8BB16C6AA8C11 /* LibraryStore.swift */; };
 		26EB3B52EE4C04ABCF0DEF0E /* BangumiModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BFBFD4FFEFE6C5A6614962 /* BangumiModels.swift */; };
 		283736953BF922F94E161B62 /* AppBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD018E2BFCA0B23A1D0BE54C /* AppBackground.swift */; };
+		390D620C1A5CE076FA250F6C /* ProviderLaunchGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EF19A30FEC21E1BA8A36B1 /* ProviderLaunchGate.swift */; };
 		43C38DD1819B07F0FCFDA6B0 /* RemoteAnimeDetailLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F080C94B902DF438F9648B6C /* RemoteAnimeDetailLoader.swift */; };
 		479B08DAB1DE5811C83C2769 /* GlassSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC19AAF399C7EB44263EECC /* GlassSurface.swift */; };
 		4D610A4446CAB7437AD11A25 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C769050285BF8222A213CF /* LibraryView.swift */; };
@@ -71,6 +72,7 @@
 		235A0ED2E395B74866D12389 /* LibraryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreTests.swift; sourceTree = "<group>"; };
 		24C20E6EDF54217390BFD559 /* AnimeMemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnimeMemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		32CE4AC73A17B046FE755285 /* LibraryBackupDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryBackupDocument.swift; sourceTree = "<group>"; };
+		32EF19A30FEC21E1BA8A36B1 /* ProviderLaunchGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderLaunchGate.swift; sourceTree = "<group>"; };
 		34258C8104F8BB16C6AA8C11 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
 		39336F8566B813FEE232A460 /* BangumiDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BangumiDetailLoader.swift; sourceTree = "<group>"; };
 		4C0EE3AE720519FDED46A0CD /* MockAnime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAnime.swift; sourceTree = "<group>"; };
@@ -104,7 +106,7 @@
 		F080C94B902DF438F9648B6C /* RemoteAnimeDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteAnimeDetailLoader.swift; sourceTree = "<group>"; };
 		F6533C47E672C7C86E541EA8 /* AnimeMemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnimeMemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F76D83B8B3E51478CC972B8D /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
-		"TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_358F3EBC-F5CE-4067-BD81-02215C3FECEB" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -170,7 +172,7 @@
 				10C7CEB3735C72F3E611DEAA /* AnimeMemoTests */,
 				2910FC39D29F79E642BBEA76 /* AnimeMemoUITests */,
 				A0D06D04E4C380C520708DC8 /* Products */,
-				9F5782BE3089FBCB00797823 /* Recovered References */,
+				9F5782BF308A16FC00797823 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -187,6 +189,7 @@
 			children = (
 				877C7C3B028528AA5D996261 /* AnimeMemoApp.swift */,
 				034E3F36DD28D6B2C47C1130 /* AppRouter.swift */,
+				32EF19A30FEC21E1BA8A36B1 /* ProviderLaunchGate.swift */,
 				86B5E9EB11DCC2BEF35E841F /* RootTabView.swift */,
 			);
 			path = App;
@@ -234,10 +237,10 @@
 			path = Search;
 			sourceTree = "<group>";
 		};
-		9F5782BE3089FBCB00797823 /* Recovered References */ = {
+		9F5782BF308A16FC00797823 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */,
+				"TEMP_358F3EBC-F5CE-4067-BD81-02215C3FECEB" /* Secrets.xcconfig */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -471,6 +474,7 @@
 				A4D2959D2DCEC4CAF3C6444D /* MetadataProvider.swift in Sources */,
 				D7D43562B40FE7D0ED823497 /* MockAnime.swift in Sources */,
 				B4904B2555EFE2C04FE90979 /* PosterArtwork.swift in Sources */,
+				390D620C1A5CE076FA250F6C /* ProviderLaunchGate.swift in Sources */,
 				D3BF038C618521B6E6E84083 /* ProviderProbe.swift in Sources */,
 				43C38DD1819B07F0FCFDA6B0 /* RemoteAnimeDetailLoader.swift in Sources */,
 				E415762849382C8684072E61 /* RootTabView.swift in Sources */,
@@ -537,7 +541,7 @@
 		};
 		07228AB560A475676C958CF5 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_358F3EBC-F5CE-4067-BD81-02215C3FECEB" /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -604,7 +608,7 @@
 		};
 		2A85E173E0AC6CDAC97DC349 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_358F3EBC-F5CE-4067-BD81-02215C3FECEB" /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

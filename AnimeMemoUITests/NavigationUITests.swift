@@ -105,4 +105,15 @@ final class NavigationUITests: XCTestCase {
         flip()
         XCTAssertTrue(app.textFields["TMDB 反向代理地址（可选）"].waitForExistence(timeout: 6))
     }
+
+    func testLaunchIsBlockedWhenBothDataSourcesFail() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-failProviderProbes", "YES"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["暂时无法连接数据源"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.textFields["launchGate.proxyField"].exists)
+        XCTAssertTrue(app.buttons["launchGate.retry"].exists)
+        XCTAssertFalse(app.staticTexts["继续观看"].exists)
+    }
 }

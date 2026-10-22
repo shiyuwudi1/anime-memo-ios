@@ -15,18 +15,72 @@ struct ProviderProbeResult: Sendable, Equatable {
     }
 }
 
-/// Lightweight connectivity check used by the settings screen so the user can
-/// compare the TMDB reverse proxy with Bangumi side by side.
+/// Availability of one metadata provider, as decided at app launch.
+struct ProviderHealth: Sendable, Equatable, Identifiable {
+    let provider: MetadataProvider
+    /// `nil` means the latest probe succeeded.
+    let failureReason: String?
+
+    var id: String { provider.id }
+
+    var isAvailable: Bool { failureReason == nil }
+
+    static func probe(_ provider: MetadataProvider, timeout: TimeInterval? = nil) async -> ProviderHealth {
+        do {
+            _ = try await ProviderProbe.run(provider, timeout: timeout)
+            return ProviderHealth(provider: provider, failureReason: nil)
+        } catch {
+            return ProviderHealth(provider: provider, failureReason: error.localizedDescription)
+        }
+    }
+
+    /// Probes both sources concurrently so launch waits for the slowest one
+    /// instead of the sum of both timeouts.
+    static func probeAll(timeout: TimeInterval? = nil) async -> [ProviderHealth] {
+        await withTaskGroup(of: ProviderHealth.self) { group in
+            for provider in MetadataProvider.allCases {
+                group.addTask {
+                    await probe(provider, timeout: timeout)
+                }
+            }
+
+            var byProvider: [MetadataProvider: ProviderHealth] = [:]
+            for await health in group {
+                byProvider[health.provider] = health
+            }
+
+            return MetadataProvider.allCases.compactMap { byProvider[$0] }
+        }
+    }
+
+    /// Keeps the current choice when it responds, otherwise silently falls
+    /// back to the other source. `nil` means neither source is usable.
+    static func preferredProvider(
+        from results: [ProviderHealth],
+        current: MetadataProvider
+    ) -> MetadataProvider? {
+        let available = Set(results.filter(\.isAvailable).map(\.provider))
+        if available.contains(current) { return current }
+        return MetadataProvider.allCases.first { available.contains($0) }
+    }
+}
+
+/// Lightweight connectivity check used by the launch gate and the settings
+/// screen so the user can compare the TMDB reverse proxy with Bangumi.
 enum ProviderProbe {
-    static func run(_ provider: MetadataProvider) async throws -> ProviderProbeResult {
+    static func run(
+        _ provider: MetadataProvider,
+        timeout: TimeInterval? = nil
+    ) async throws -> ProviderProbeResult {
         let start = Date()
+        let session = makeSession(timeout: timeout)
 
         let count: Int
         let title: String
 
         switch provider {
         case .tmdb:
-            guard let client = TMDBClient.makeFromConfiguration() else {
+            guard let client = TMDBClient.makeFromConfiguration(session: session) else {
                 throw TMDBError.notConfigured
             }
             let page = try await client.discoverAnime()
@@ -36,7 +90,7 @@ enum ProviderProbe {
             title = items.first?.displayTitle ?? "（空）"
 
         case .bangumi:
-            let subjects = try await BangumiClient().discover(limit: 20)
+            let subjects = try await BangumiClient(session: session).discover(limit: 20)
             count = subjects.count
             title = subjects.first?.displayTitle ?? "（空）"
         }
@@ -47,5 +101,15 @@ enum ProviderProbe {
             sampleCount: count,
             sampleTitle: title
         )
+    }
+
+    /// `nil` keeps the clients' built-in timeouts.
+    private static func makeSession(timeout: TimeInterval?) -> URLSession? {
+        guard let timeout else { return nil }
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = timeout
+        configuration.timeoutIntervalForResource = timeout
+        configuration.waitsForConnectivity = false
+        return URLSession(configuration: configuration)
     }
 }
