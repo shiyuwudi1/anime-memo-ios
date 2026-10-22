@@ -175,8 +175,12 @@ struct HomeView: View {
                     ForEach(entries) { anime in
                         NavigationLink(destination: AnimeDetailView(anime: anime)) {
                             VStack(alignment: .leading, spacing: 7) {
-                                PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
-                                    .frame(width: 104, height: 148)
+                                PosterArtwork(
+                                    style: anime.poster,
+                                    posterURL: anime.posterURL,
+                                    placeholderTitle: anime.title
+                                )
+                                .frame(width: 104, height: 148)
 
                                 Text(anime.title)
                                     .font(.caption.weight(.semibold))
@@ -298,8 +302,12 @@ private struct TodayUpdateCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             NavigationLink(destination: AnimeDetailView(anime: anime)) {
-                PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
-                    .frame(width: 152, height: 214)
+                PosterArtwork(
+                    style: anime.poster,
+                    posterURL: anime.posterURL,
+                    placeholderTitle: anime.title
+                )
+                .frame(width: 152, height: 214)
             }
             .buttonStyle(.plain)
 

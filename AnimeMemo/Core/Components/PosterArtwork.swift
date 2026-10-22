@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum PosterStyle: String, CaseIterable, Hashable, Codable {
     case frieren
@@ -72,36 +73,118 @@ enum PosterStyle: String, CaseIterable, Hashable, Codable {
     }
 }
 
+/// Decoded posters kept in memory, so returning to a screen never touches disk
+/// or the network again for artwork that is already on screen elsewhere.
+@MainActor
+final class PosterImageMemoryCache {
+    static let shared = PosterImageMemoryCache()
+
+    private let cache = NSCache<NSURL, UIImage>()
+
+    private init() {
+        cache.countLimit = 240
+    }
+
+    func image(for url: URL) -> UIImage? {
+        cache.object(forKey: url as NSURL)
+    }
+
+    func store(_ image: UIImage, for url: URL) {
+        cache.setObject(image, forKey: url as NSURL)
+    }
+}
+
+/// Downloads posters once and keeps the raw bytes on disk, so a poster that has
+/// been loaded before is served from the cache on the next launch.
+actor PosterImageLoader {
+    static let shared = PosterImageLoader()
+
+    private let session: URLSession
+    private let directory: URL
+    private var inFlight: [URL: Task<Data?, Never>] = [:]
+
+    init(session: URLSession = .shared) {
+        self.session = session
+        let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+        let base = caches ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        self.directory = base.appendingPathComponent("PosterImages", isDirectory: true)
+    }
+
+    func data(for url: URL) async -> Data? {
+        let cacheFile = fileURL(for: url)
+
+        if let cached = try? Data(contentsOf: cacheFile), !cached.isEmpty {
+            return cached
+        }
+
+        if let running = inFlight[url] {
+            return await running.value
+        }
+
+        let session = self.session
+        let task = Task.detached(priority: .utility) {
+            await PosterImageDownload.fetch(url, using: session)
+        }
+        inFlight[url] = task
+
+        let data = await task.value
+
+        if let data, !data.isEmpty {
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try? data.write(to: cacheFile, options: .atomic)
+        }
+
+        inFlight[url] = nil
+        return data
+    }
+
+    private func fileURL(for url: URL) -> URL {
+        directory.appendingPathComponent(PosterImageDownload.fileName(for: url))
+    }
+}
+
+private enum PosterImageDownload {
+    static func fetch(_ url: URL, using session: URLSession) async -> Data? {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 20
+        request.cachePolicy = .returnCacheDataElseLoad
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else { return nil }
+            guard (200..<300).contains(http.statusCode) else { return nil }
+            return data.isEmpty ? nil : data
+        } catch {
+            return nil
+        }
+    }
+
+    /// Stable across launches (unlike `Hasher`), so the disk cache actually hits.
+    static func fileName(for url: URL) -> String {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in Data(url.absoluteString.utf8) {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x0000_0100_0000_01b3
+        }
+        return String(hash, radix: 16)
+    }
+}
+
 struct PosterArtwork: View {
     let style: PosterStyle
     var posterURL: URL? = nil
     var cornerRadius: CGFloat = AppTheme.posterRadius
     var showsLabel: Bool = true
+    /// Text drawn on the fallback artwork. Always pass the item's own title so
+    /// the placeholder can never show another show's name.
+    var placeholderTitle: String? = nil
 
-    @State private var imageLoaded = false
+    @State private var image: UIImage?
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                if let posterURL {
-                    AsyncImage(
-                        url: posterURL,
-                        transaction: Transaction(animation: .easeIn(duration: 0.2))
-                    ) { phase in
-                        if case .success(let image) = phase {
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .onAppear {
-                                    imageLoaded = true
-                                }
-                        } else {
-                            gradient
-                        }
-                    }
-                } else {
-                    gradient
-                }
+                gradient
 
                 if posterURL == nil {
                     Circle()
@@ -117,24 +200,33 @@ struct PosterArtwork: View {
                         .offset(x: -80, y: 120)
                 }
 
-                if showsLabel && !imageLoaded {
-                    VStack(spacing: 8) {
-                        Spacer()
-                        Text(style.overlayText)
-                            .font(.system(size: min(26, proxy.size.width * 0.16), weight: .black, design: .rounded))
-                            .tracking(1)
-                            .multilineTextAlignment(.center)
-                            .foregroundStyle(.white.opacity(0.94))
-                            .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
-                            .padding(.horizontal, 14)
-                        Rectangle()
-                            .fill(.white.opacity(0.55))
-                            .frame(width: 28, height: 2)
-                            .padding(.bottom, 18)
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .clipped()
+                        .transition(.opacity)
+                } else {
+                    if showsLabel {
+                        VStack(spacing: 8) {
+                            Spacer()
+                            Text(placeholderTitle ?? style.overlayText)
+                                .font(.system(size: min(26, proxy.size.width * 0.16), weight: .black, design: .rounded))
+                                .tracking(1)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.6)
+                                .foregroundStyle(.white.opacity(0.94))
+                                .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
+                                .padding(.horizontal, 14)
+                            Rectangle()
+                                .fill(.white.opacity(0.55))
+                                .frame(width: 28, height: 2)
+                                .padding(.bottom, 18)
+                        }
                     }
-                }
 
-                if !imageLoaded {
                     Image(systemName: style.symbol)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.white.opacity(0.88))
@@ -150,8 +242,8 @@ struct PosterArtwork: View {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .strokeBorder(.white.opacity(0.16), lineWidth: 0.8)
             }
-            .onChange(of: posterURL) { _, _ in
-                imageLoaded = false
+            .task(id: posterURL) {
+                await loadImage()
             }
         }
     }
@@ -162,5 +254,28 @@ struct PosterArtwork: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+
+    @MainActor
+    private func loadImage() async {
+        guard let posterURL else {
+            image = nil
+            return
+        }
+
+        if let cached = PosterImageMemoryCache.shared.image(for: posterURL) {
+            image = cached
+            return
+        }
+
+        image = nil
+
+        guard let data = await PosterImageLoader.shared.data(for: posterURL) else { return }
+        guard !Task.isCancelled, let loaded = UIImage(data: data) else { return }
+
+        PosterImageMemoryCache.shared.store(loaded, for: posterURL)
+        withAnimation(.easeIn(duration: 0.2)) {
+            image = loaded
+        }
     }
 }

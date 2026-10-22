@@ -183,8 +183,12 @@ struct SearchView: View {
                     ForEach(discoveryItems) { anime in
                         NavigationLink(destination: detailDestination(for: anime)) {
                             VStack(alignment: .leading, spacing: 8) {
-                                PosterArtwork(style: anime.poster, posterURL: anime.posterURL)
-                                    .frame(height: 232)
+                                PosterArtwork(
+                                    style: anime.poster,
+                                    posterURL: anime.posterURL,
+                                    placeholderTitle: anime.title
+                                )
+                                .frame(height: 232)
 
                                 Text(anime.title)
                                     .font(.subheadline.weight(.semibold))

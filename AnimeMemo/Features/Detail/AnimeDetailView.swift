@@ -189,9 +189,13 @@ struct AnimeDetailView: View {
             .frame(height: height)
 
             HStack(alignment: .bottom, spacing: 16) {
-                PosterArtwork(style: current.poster, posterURL: current.posterURL)
-                    .frame(width: 108, height: 158)
-                    .shadow(color: .black.opacity(0.28), radius: 18, y: 10)
+                PosterArtwork(
+                    style: current.poster,
+                    posterURL: current.posterURL,
+                    placeholderTitle: current.title
+                )
+                .frame(width: 108, height: 158)
+                .shadow(color: .black.opacity(0.28), radius: 18, y: 10)
 
                 VStack(alignment: .leading, spacing: 7) {
                     Text(current.seasonLabel)
