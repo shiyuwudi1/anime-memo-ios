@@ -45,6 +45,18 @@ struct AnimeMemoApp: App {
             NavigationStack {
                 AnimeDetailView(anime: .frieren)
             }
+        case "detailShort":
+            NavigationStack {
+                AnimeDetailView(anime: .debugShortSynopsis)
+            }
+        case "detailLong":
+            NavigationStack {
+                AnimeDetailView(anime: .debugLongSynopsis)
+            }
+        case "detailSeasons":
+            NavigationStack {
+                AnimeDetailView(anime: .debugMultiSeason)
+            }
         case "remoteDetail":
             NavigationStack {
                 RemoteAnimeDetailLoader(summary: .debugRemoteFrieren)

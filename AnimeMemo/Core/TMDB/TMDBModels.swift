@@ -56,6 +56,14 @@ struct TMDBMediaSummary: Decodable, Identifiable, Hashable, Sendable {
         mediaTypeRaw.flatMap(TMDBMediaType.init(rawValue:))
     }
 
+    /// `/discover/tv` responses omit `media_type` entirely, while
+    /// `/search/multi` always includes it (and may return people). Callers pass
+    /// the expected type so a missing field is not mistaken for a mismatch.
+    func resolvedMediaType(default fallback: TMDBMediaType? = nil) -> TMDBMediaType? {
+        guard let mediaTypeRaw else { return fallback }
+        return TMDBMediaType(rawValue: mediaTypeRaw)
+    }
+
     var displayTitle: String {
         title ?? name ?? originalTitle ?? originalName ?? "未命名"
     }

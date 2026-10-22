@@ -10,11 +10,20 @@ struct SearchView: View {
     @State private var errorMessage: String?
     @State private var didLoadDiscover = false
     @State private var isOffline = false
+    @AppStorage("metadataProvider") private var providerRaw = MetadataProvider.tmdb.rawValue
 
-    private let client = TMDBClient.makeFromConfiguration()
+    private let bangumiClient = BangumiClient()
+
+    private var provider: MetadataProvider {
+        MetadataProvider(rawValue: providerRaw) ?? .tmdb
+    }
+
+    private var tmdbClient: TMDBClient? {
+        TMDBClient.makeFromConfiguration()
+    }
 
     private var usesRemote: Bool {
-        client != nil
+        provider == .bangumi || AppConfiguration.isTMDBConfigured
     }
 
     private var results: [MockAnime] {
@@ -75,7 +84,7 @@ struct SearchView: View {
 
                     if isLoading && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         VStack(spacing: 14) {
-                            ProgressView("正在连接 TMDB…")
+                            ProgressView("正在连接 \(provider.title)…")
                             Button("先看本地示例") {
                                 useOfflineFallback()
                             }
@@ -108,7 +117,11 @@ struct SearchView: View {
                         ContentUnavailableView(
                             "没有找到",
                             systemImage: "magnifyingglass",
-                            description: Text("试试日文名或英文名。TMDB 的中文覆盖不一定完整。")
+                            description: Text(
+                                provider == .bangumi
+                                    ? "试试简体中文名、日文名或原名。"
+                                    : "试试日文名或英文名。TMDB 的中文覆盖不一定完整。"
+                            )
                         )
                         .frame(minHeight: 280)
                     } else {
@@ -128,8 +141,15 @@ struct SearchView: View {
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "搜索番剧、剧场版"
             )
-            .task(id: query) {
+            .task(id: "\(providerRaw)|\(query)") {
                 await performSearch()
+            }
+            .onChange(of: providerRaw) { _, _ in
+                remoteResults = []
+                remoteDiscover = []
+                didLoadDiscover = false
+                isOffline = false
+                errorMessage = nil
             }
         }
     }
@@ -151,7 +171,7 @@ struct SearchView: View {
             }
 
             VStack(alignment: .leading, spacing: 12) {
-                sectionTitle("本季热门")
+                sectionTitle(provider == .bangumi ? "本季新番" : "本季热门")
 
                 LazyVGrid(
                     columns: [
@@ -251,7 +271,7 @@ struct SearchView: View {
         HStack(spacing: 8) {
             ProgressView()
                 .controlSize(.small)
-            Text("正在连接 TMDB，先显示本地示例…")
+            Text("正在连接 \(provider.title)，先显示本地示例…")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
@@ -272,9 +292,9 @@ struct SearchView: View {
                 .foregroundStyle(AppTheme.accent)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("TMDB 暂不可用")
+                Text("\(provider.title) 暂不可用")
                     .font(.caption.weight(.semibold))
-                Text("当前显示本地示例。请检查网络或在 iPhone 上开启代理/VPN。")
+                Text("当前显示本地示例。\(provider.networkHint)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -326,7 +346,9 @@ struct SearchView: View {
 
     @ViewBuilder
     private func detailDestination(for anime: MockAnime) -> some View {
-        if anime.tmdbID != nil {
+        if anime.bangumiID != nil {
+            BangumiDetailLoader(summary: anime)
+        } else if anime.tmdbID != nil {
             RemoteAnimeDetailLoader(summary: anime)
         } else {
             AnimeDetailView(anime: anime)
@@ -335,8 +357,6 @@ struct SearchView: View {
 
     @MainActor
     private func performSearch() async {
-        guard let client else { return }
-
         let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if normalized.isEmpty {
@@ -346,9 +366,20 @@ struct SearchView: View {
             errorMessage = nil
 
             do {
-                let page = try await client.discoverAnime()
+                let items: [MockAnime]
+                switch provider {
+                case .tmdb:
+                    guard let client = tmdbClient else {
+                        throw TMDBError.notConfigured
+                    }
+                    let page = try await client.discoverAnime()
+                    items = map(page.results, defaultMediaType: .tv)
+                case .bangumi:
+                    let subjects = try await bangumiClient.discover()
+                    items = subjects.map { MockAnime.from(bangumi: $0) }
+                }
                 guard !Task.isCancelled else { return }
-                remoteDiscover = map(page.results)
+                remoteDiscover = items
                 isOffline = false
                 isLoading = false
             } catch is CancellationError {
@@ -372,9 +403,20 @@ struct SearchView: View {
         errorMessage = nil
 
         do {
-            let page = try await client.searchMulti(query: normalized)
+            let items: [MockAnime]
+            switch provider {
+            case .tmdb:
+                guard let client = tmdbClient else {
+                    throw TMDBError.notConfigured
+                }
+                let page = try await client.searchMulti(query: normalized)
+                items = map(page.results)
+            case .bangumi:
+                let subjects = try await bangumiClient.search(query: normalized)
+                items = subjects.map { MockAnime.from(bangumi: $0) }
+            }
             guard !Task.isCancelled else { return }
-            remoteResults = map(page.results)
+            remoteResults = items
             isOffline = false
             isLoading = false
         } catch is CancellationError {
@@ -388,10 +430,19 @@ struct SearchView: View {
         }
     }
 
-    private func map(_ results: [TMDBMediaSummary]) -> [MockAnime] {
-        results
-            .filter { $0.isSupportedMedia && $0.isAnimation }
-            .map(MockAnime.from(summary:))
+    private func map(
+        _ results: [TMDBMediaSummary],
+        defaultMediaType: TMDBMediaType? = nil
+    ) -> [MockAnime] {
+        results.compactMap { summary in
+            guard
+                let type = summary.resolvedMediaType(default: defaultMediaType),
+                summary.isAnimation
+            else {
+                return nil
+            }
+            return MockAnime.from(summary: summary, mediaType: type)
+        }
     }
 }
 

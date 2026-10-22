@@ -16,6 +16,15 @@ final class LibraryStore {
     init(fileURL: URL? = nil) {
         self.fileURL = fileURL ?? Self.defaultFileURL()
 
+        #if DEBUG
+        // Deterministic state for UI tests: `-resetLibrary` starts from seeds.
+        if CommandLine.arguments.contains("-resetLibrary") {
+            self.entries = Self.seedEntries()
+            persist()
+            return
+        }
+        #endif
+
         if let loaded = Self.load(from: self.fileURL) {
             let enriched = loaded.map(Self.enrichingMockMetadata)
             self.entries = enriched

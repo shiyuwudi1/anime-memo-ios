@@ -19,7 +19,7 @@ enum TMDBError: Error, LocalizedError, Sendable {
         case .httpStatus(let code):
             return "TMDB 请求失败（HTTP \(code)）。"
         case .network(let message):
-            return "无法连接 TMDB。\(message) 请检查网络，或在 iPhone 上开启代理/VPN 后重试。"
+            return "无法连接 TMDB。\(message) 请检查网络，或在设置里填写可用的反向代理地址。"
         case .decoding(let message):
             return "TMDB 数据解析失败：\(message)"
         }
@@ -30,17 +30,30 @@ actor TMDBClient {
     private let token: String
     private let session: URLSession
     private let decoder: JSONDecoder
-    private let baseURL = URL(string: "https://api.themoviedb.org/3")!
+    private let baseURL: URL
 
-    init(token: String, session: URLSession = .shared) {
+    init(
+        token: String,
+        session: URLSession = .shared,
+        baseURL: URL = URL(string: "https://api.themoviedb.org/3")!
+    ) {
         self.token = token
         self.session = session
+        self.baseURL = baseURL
         self.decoder = JSONDecoder()
     }
 
     static func makeFromConfiguration(session: URLSession? = nil) -> TMDBClient? {
-        guard let token = AppConfiguration.tmdbReadAccessToken else { return nil }
-        return TMDBClient(token: token, session: session ?? makeDefaultSession())
+        let baseURL = AppConfiguration.tmdbAPIBaseURL
+        let token = AppConfiguration.tmdbReadAccessToken ?? ""
+        if token.isEmpty && AppConfiguration.tmdbAPIBaseURLIsDefault {
+            return nil
+        }
+        return TMDBClient(
+            token: token,
+            session: session ?? makeDefaultSession(),
+            baseURL: baseURL
+        )
     }
 
     private static func makeDefaultSession() -> URLSession {
@@ -49,6 +62,13 @@ actor TMDBClient {
         configuration.timeoutIntervalForResource = 20
         configuration.waitsForConnectivity = false
         return URLSession(configuration: configuration)
+    }
+
+    /// `true` when requests go through a user supplied reverse proxy instead of
+    /// the official API host. A proxy injects the token server side, so the app
+    /// itself does not need one.
+    private var usesReverseProxy: Bool {
+        baseURL.host?.lowercased() != "api.themoviedb.org"
     }
 
     func searchMulti(query: String, page: Int = 1) async throws -> TMDBPage<TMDBMediaSummary> {
@@ -62,14 +82,26 @@ actor TMDBClient {
         )
     }
 
+    /// Recent Japanese animation, sorted by popularity. Without the air-date
+    /// window TMDB returns decade-old long runners instead of this season.
     func discoverAnime(page: Int = 1) async throws -> TMDBPage<TMDBMediaSummary> {
-        try await get(
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        let today = Date()
+        let lookbackStart = Calendar.current.date(byAdding: .day, value: -120, to: today) ?? today
+
+        return try await get(
             "/discover/tv",
             query: [
                 URLQueryItem(name: "with_genres", value: "16"),
                 URLQueryItem(name: "with_original_language", value: "ja"),
                 URLQueryItem(name: "sort_by", value: "popularity.desc"),
                 URLQueryItem(name: "vote_count.gte", value: "10"),
+                URLQueryItem(name: "first_air_date.gte", value: formatter.string(from: lookbackStart)),
+                URLQueryItem(name: "first_air_date.lte", value: formatter.string(from: today)),
                 URLQueryItem(name: "page", value: String(page))
             ]
         )
@@ -95,7 +127,7 @@ actor TMDBClient {
         _ path: String,
         query: [URLQueryItem]
     ) async throws -> T {
-        guard !token.isEmpty else { throw TMDBError.notConfigured }
+        guard !token.isEmpty || usesReverseProxy else { throw TMDBError.notConfigured }
 
         guard var components = URLComponents(
             url: baseURL.appendingPathComponent(path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))),
@@ -113,7 +145,9 @@ actor TMDBClient {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 10
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if !token.isEmpty {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         let data: Data

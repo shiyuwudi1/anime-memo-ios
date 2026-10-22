@@ -10,16 +10,19 @@
 		00ACDA9BFB544393F0024F95 /* AnimeMemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 877C7C3B028528AA5D996261 /* AnimeMemoApp.swift */; };
 		044369A73D5AF334A470B4AA /* GlassChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61121EACFEF02B8145B1FE4E /* GlassChip.swift */; };
 		1AF86546376AE1E726F7A88C /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34258C8104F8BB16C6AA8C11 /* LibraryStore.swift */; };
+		26EB3B52EE4C04ABCF0DEF0E /* BangumiModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BFBFD4FFEFE6C5A6614962 /* BangumiModels.swift */; };
 		283736953BF922F94E161B62 /* AppBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD018E2BFCA0B23A1D0BE54C /* AppBackground.swift */; };
 		43C38DD1819B07F0FCFDA6B0 /* RemoteAnimeDetailLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F080C94B902DF438F9648B6C /* RemoteAnimeDetailLoader.swift */; };
 		479B08DAB1DE5811C83C2769 /* GlassSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC19AAF399C7EB44263EECC /* GlassSurface.swift */; };
 		4D610A4446CAB7437AD11A25 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C769050285BF8222A213CF /* LibraryView.swift */; };
+		60DA039D14586B7C60554FA1 /* DataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB826D2BAC8A5339847B83C /* DataSourceTests.swift */; };
 		632034BACAC359E9DEABB0E4 /* LibraryBackupDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE4AC73A17B046FE755285 /* LibraryBackupDocument.swift */; };
 		6C440F53AFB07C669DB47E87 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA46BB7F622311DA5B9EF73 /* SettingsView.swift */; };
 		7084D4AED55336FD3F186D38 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9D327B4A341808D6F1D20F /* SearchView.swift */; };
 		71C51C43D3B5D7DE6D6EB9E1 /* TMDBModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A17164E80B3F8E6C4036F1 /* TMDBModels.swift */; };
 		85898B9186F43C19D8906C74 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B478295765F190E3886595F /* Assets.xcassets */; };
 		91236223D9EF590266A5FA77 /* AnimeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA78A40DE7BD6B745247F946 /* AnimeDetailView.swift */; };
+		A4D2959D2DCEC4CAF3C6444D /* MetadataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF4682D4AAB3EE1711EAB6 /* MetadataProvider.swift */; };
 		A7702B3EDA310786649DFB21 /* GlassBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0993017A7D665B24C9F13428 /* GlassBar.swift */; };
 		ABEFEF927FF894C7B30F6C50 /* TMDBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036163D91543A010FC8A3008 /* TMDBClient.swift */; };
 		AE487837F075CA56AA812D29 /* EditEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C54BF1276AAAA365EE92E3F /* EditEntrySheet.swift */; };
@@ -29,14 +32,18 @@
 		BE84D04A5D5E9F8620C6DA09 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F13EE3EE03ED1AA4FE7633 /* AppTheme.swift */; };
 		BF260B4EE85CF7F2DF92AAAC /* LibraryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235A0ED2E395B74866D12389 /* LibraryStoreTests.swift */; };
 		C151917D6F598EC0E3ED1EB2 /* NavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B96459A0E8511A56BAB009A /* NavigationUITests.swift */; };
+		C341AC4534842BF337CE0C36 /* BangumiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C011CA9B829E9F3DEF4E8E /* BangumiClient.swift */; };
 		C5E036FAB159FA83D969D121 /* MockAnimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DA19101877EB90EFC1AAC5 /* MockAnimeTests.swift */; };
 		CB07E6885DAA193D46EC81C2 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76D83B8B3E51478CC972B8D /* AppConfiguration.swift */; };
+		D3BF038C618521B6E6E84083 /* ProviderProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AAD7A54F964878C5A10FC17 /* ProviderProbe.swift */; };
 		D4C032EE0E9F222855F7576A /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81500F2A38C66719078BB277 /* GlassButton.swift */; };
 		D7D43562B40FE7D0ED823497 /* MockAnime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0EE3AE720519FDED46A0CD /* MockAnime.swift */; };
 		DC7B367E4BA318E7D339C23B /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820893C4AE340C30595986AE /* HomeView.swift */; };
 		DDEB354BDD3BA4F0C9A9AF4E /* GlassToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 672771C8AE5EEFC49A91F8A9 /* GlassToast.swift */; };
 		E415762849382C8684072E61 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86B5E9EB11DCC2BEF35E841F /* RootTabView.swift */; };
 		E46956601D17B2FC0862B252 /* GlassLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7EF205D5F0C5E129294DE /* GlassLabView.swift */; };
+		ED072A67D0EA738714C8A56A /* SeasonProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757FEF87AF87229AEA4CD17D /* SeasonProgressTests.swift */; };
+		FB1E541F17DCA8DA8F46988A /* BangumiDetailLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39336F8566B813FEE232A460 /* BangumiDetailLoader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,19 +67,25 @@
 		034E3F36DD28D6B2C47C1130 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		036163D91543A010FC8A3008 /* TMDBClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBClient.swift; sourceTree = "<group>"; };
 		0993017A7D665B24C9F13428 /* GlassBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassBar.swift; sourceTree = "<group>"; };
+		1FFF4682D4AAB3EE1711EAB6 /* MetadataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataProvider.swift; sourceTree = "<group>"; };
 		235A0ED2E395B74866D12389 /* LibraryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreTests.swift; sourceTree = "<group>"; };
-		24C20E6EDF54217390BFD559 /* AnimeMemoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AnimeMemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		24C20E6EDF54217390BFD559 /* AnimeMemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnimeMemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		32CE4AC73A17B046FE755285 /* LibraryBackupDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryBackupDocument.swift; sourceTree = "<group>"; };
 		34258C8104F8BB16C6AA8C11 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		39336F8566B813FEE232A460 /* BangumiDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BangumiDetailLoader.swift; sourceTree = "<group>"; };
 		4C0EE3AE720519FDED46A0CD /* MockAnime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAnime.swift; sourceTree = "<group>"; };
+		55C011CA9B829E9F3DEF4E8E /* BangumiClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BangumiClient.swift; sourceTree = "<group>"; };
 		56B7EF205D5F0C5E129294DE /* GlassLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassLabView.swift; sourceTree = "<group>"; };
 		57F13EE3EE03ED1AA4FE7633 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		59719ACFF54A3EF5F256F8C5 /* TMDBModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBModelTests.swift; sourceTree = "<group>"; };
+		5AAD7A54F964878C5A10FC17 /* ProviderProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderProbe.swift; sourceTree = "<group>"; };
 		5CA46BB7F622311DA5B9EF73 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		61121EACFEF02B8145B1FE4E /* GlassChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassChip.swift; sourceTree = "<group>"; };
 		672771C8AE5EEFC49A91F8A9 /* GlassToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassToast.swift; sourceTree = "<group>"; };
 		6BC19AAF399C7EB44263EECC /* GlassSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassSurface.swift; sourceTree = "<group>"; };
 		6C54BF1276AAAA365EE92E3F /* EditEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditEntrySheet.swift; sourceTree = "<group>"; };
+		6DB826D2BAC8A5339847B83C /* DataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourceTests.swift; sourceTree = "<group>"; };
+		757FEF87AF87229AEA4CD17D /* SeasonProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonProgressTests.swift; sourceTree = "<group>"; };
 		7B96459A0E8511A56BAB009A /* NavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationUITests.swift; sourceTree = "<group>"; };
 		81500F2A38C66719078BB277 /* GlassButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassButton.swift; sourceTree = "<group>"; };
 		820893C4AE340C30595986AE /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -81,16 +94,17 @@
 		8B478295765F190E3886595F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		95C769050285BF8222A213CF /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		B9A17164E80B3F8E6C4036F1 /* TMDBModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBModels.swift; sourceTree = "<group>"; };
+		C3BFBFD4FFEFE6C5A6614962 /* BangumiModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BangumiModels.swift; sourceTree = "<group>"; };
 		D0DA19101877EB90EFC1AAC5 /* MockAnimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAnimeTests.swift; sourceTree = "<group>"; };
 		DA78A40DE7BD6B745247F946 /* AnimeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimeDetailView.swift; sourceTree = "<group>"; };
 		DD018E2BFCA0B23A1D0BE54C /* AppBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBackground.swift; sourceTree = "<group>"; };
-		DDC05BDFA820253DC2F129BC /* AnimeMemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AnimeMemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDC05BDFA820253DC2F129BC /* AnimeMemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AnimeMemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DFCD8E228CA02AC0516208EA /* PosterArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PosterArtwork.swift; sourceTree = "<group>"; };
 		EC9D327B4A341808D6F1D20F /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		F080C94B902DF438F9648B6C /* RemoteAnimeDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteAnimeDetailLoader.swift; sourceTree = "<group>"; };
-		F6533C47E672C7C86E541EA8 /* AnimeMemoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = AnimeMemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6533C47E672C7C86E541EA8 /* AnimeMemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnimeMemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F76D83B8B3E51478CC972B8D /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
-		"TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -105,8 +119,10 @@
 		10C7CEB3735C72F3E611DEAA /* AnimeMemoTests */ = {
 			isa = PBXGroup;
 			children = (
+				6DB826D2BAC8A5339847B83C /* DataSourceTests.swift */,
 				235A0ED2E395B74866D12389 /* LibraryStoreTests.swift */,
 				D0DA19101877EB90EFC1AAC5 /* MockAnimeTests.swift */,
+				757FEF87AF87229AEA4CD17D /* SeasonProgressTests.swift */,
 				59719ACFF54A3EF5F256F8C5 /* TMDBModelTests.swift */,
 			);
 			path = AnimeMemoTests;
@@ -123,8 +139,10 @@
 		36D767E237C8DD8DA12B1059 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				F47D09F284216E4876B0F02D /* Bangumi */,
 				8D1C7215EDB711D1592E0F00 /* Components */,
 				A7D2794803454ED5A0B0DB05 /* DesignSystem */,
+				F3D27E5E965F221D41977571 /* Media */,
 				B289E2A289586E74424341D4 /* Models */,
 				E19F7DD17FA287D083C06BC2 /* Store */,
 				72CF2B036E8A7D6DEA263CBE /* TMDB */,
@@ -152,6 +170,7 @@
 				10C7CEB3735C72F3E611DEAA /* AnimeMemoTests */,
 				2910FC39D29F79E642BBEA76 /* AnimeMemoUITests */,
 				A0D06D04E4C380C520708DC8 /* Products */,
+				9F5782BE3089FBCB00797823 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -213,6 +232,14 @@
 				EC9D327B4A341808D6F1D20F /* SearchView.swift */,
 			);
 			path = Search;
+			sourceTree = "<group>";
+		};
+		9F5782BE3089FBCB00797823 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				"TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		A076BBE021E3A60CFD3686F5 /* AnimeMemo */ = {
@@ -279,18 +306,29 @@
 			isa = PBXGroup;
 			children = (
 				DA78A40DE7BD6B745247F946 /* AnimeDetailView.swift */,
+				39336F8566B813FEE232A460 /* BangumiDetailLoader.swift */,
 				6C54BF1276AAAA365EE92E3F /* EditEntrySheet.swift */,
 				F080C94B902DF438F9648B6C /* RemoteAnimeDetailLoader.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
 		};
-		"TEMP_8FD34AB3-0DAB-4278-9A4E-19FBD0B79DB6" /* my-anime-memo-ios */ = {
+		F3D27E5E965F221D41977571 /* Media */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */,
+				1FFF4682D4AAB3EE1711EAB6 /* MetadataProvider.swift */,
+				5AAD7A54F964878C5A10FC17 /* ProviderProbe.swift */,
 			);
-			path = "my-anime-memo-ios";
+			path = Media;
+			sourceTree = "<group>";
+		};
+		F47D09F284216E4876B0F02D /* Bangumi */ = {
+			isa = PBXGroup;
+			children = (
+				55C011CA9B829E9F3DEF4E8E /* BangumiClient.swift */,
+				C3BFBFD4FFEFE6C5A6614962 /* BangumiModels.swift */,
+			);
+			path = Bangumi;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -364,7 +402,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					71E9D2496688483CA41DC3ED = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					FF7918733528A5377850FE34 = {
@@ -417,6 +454,9 @@
 				CB07E6885DAA193D46EC81C2 /* AppConfiguration.swift in Sources */,
 				BCC9FAC8F0FE3ACE532F298B /* AppRouter.swift in Sources */,
 				BE84D04A5D5E9F8620C6DA09 /* AppTheme.swift in Sources */,
+				C341AC4534842BF337CE0C36 /* BangumiClient.swift in Sources */,
+				FB1E541F17DCA8DA8F46988A /* BangumiDetailLoader.swift in Sources */,
+				26EB3B52EE4C04ABCF0DEF0E /* BangumiModels.swift in Sources */,
 				AE487837F075CA56AA812D29 /* EditEntrySheet.swift in Sources */,
 				A7702B3EDA310786649DFB21 /* GlassBar.swift in Sources */,
 				D4C032EE0E9F222855F7576A /* GlassButton.swift in Sources */,
@@ -428,8 +468,10 @@
 				632034BACAC359E9DEABB0E4 /* LibraryBackupDocument.swift in Sources */,
 				1AF86546376AE1E726F7A88C /* LibraryStore.swift in Sources */,
 				4D610A4446CAB7437AD11A25 /* LibraryView.swift in Sources */,
+				A4D2959D2DCEC4CAF3C6444D /* MetadataProvider.swift in Sources */,
 				D7D43562B40FE7D0ED823497 /* MockAnime.swift in Sources */,
 				B4904B2555EFE2C04FE90979 /* PosterArtwork.swift in Sources */,
+				D3BF038C618521B6E6E84083 /* ProviderProbe.swift in Sources */,
 				43C38DD1819B07F0FCFDA6B0 /* RemoteAnimeDetailLoader.swift in Sources */,
 				E415762849382C8684072E61 /* RootTabView.swift in Sources */,
 				7084D4AED55336FD3F186D38 /* SearchView.swift in Sources */,
@@ -451,8 +493,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				60DA039D14586B7C60554FA1 /* DataSourceTests.swift in Sources */,
 				BF260B4EE85CF7F2DF92AAAC /* LibraryStoreTests.swift in Sources */,
 				C5E036FAB159FA83D969D121 /* MockAnimeTests.swift in Sources */,
+				ED072A67D0EA738714C8A56A /* SeasonProgressTests.swift in Sources */,
 				AE9E87BC8AAC016891FE2EED /* TMDBModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -478,6 +522,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = HMPH3TUHLN;
 				INFOPLIST_FILE = AnimeMemo/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -492,7 +537,7 @@
 		};
 		07228AB560A475676C958CF5 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -559,7 +604,7 @@
 		};
 		2A85E173E0AC6CDAC97DC349 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_B6C71CDA-EE18-49A8-BD2B-14EA8F5958C7" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_B5340FA0-04EA-4551-9BD2-18E5520D0883" /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -670,6 +715,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = HMPH3TUHLN;
 				INFOPLIST_FILE = AnimeMemo/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

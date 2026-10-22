@@ -30,6 +30,17 @@ enum LibraryStatus: String, CaseIterable, Identifiable, Hashable, Codable {
     }
 }
 
+struct SeasonOption: Identifiable, Hashable, Codable, Sendable {
+    var number: Int
+    var name: String
+    var episodeCount: Int
+    var posterURL: URL? = nil
+    var nextEpisode: String? = nil
+    var nextEpisodeDateString: String? = nil
+
+    var id: Int { number }
+}
+
 struct MockAnime: Identifiable, Hashable, Codable {
     var id: String
     var title: String
@@ -52,9 +63,33 @@ struct MockAnime: Identifiable, Hashable, Codable {
     var isMovie: Bool = false
     var runtime: Int = 24
     var tmdbID: Int?
+    var bangumiID: Int?
     var mediaType: String?
     var seasonNumber: Int?
     var posterURL: URL?
+    var seasons: [SeasonOption] = []
+
+    var isBangumi: Bool { bangumiID != nil }
+
+    /// Narrows the entry to a single season. TMDB series get a per-season
+    /// identifier so every season keeps its own progress in `LibraryStore`.
+    func scoped(to season: SeasonOption) -> MockAnime {
+        var item = self
+
+        if let tmdbID {
+            item.id = "tv-\(tmdbID)-s\(season.number)"
+        }
+
+        item.seasonNumber = season.number
+        item.seasonLabel = season.name
+        item.total = season.episodeCount
+        item.nextEpisode = season.nextEpisode
+        item.nextEpisodeDateString = season.nextEpisodeDateString
+        if let posterURL = season.posterURL {
+            item.posterURL = posterURL
+        }
+        return item
+    }
 
     var progressText: String {
         isMovie ? (progress >= 1 ? "已看完" : "未看") : "第 \(progress) 话 / 共 \(total) 话"
@@ -218,9 +253,38 @@ struct MockAnime: Identifiable, Hashable, Codable {
         ))
     }
 
-    static func from(summary: TMDBMediaSummary) -> MockAnime {
-        let isMovie = summary.mediaType == .movie
-        let type = summary.mediaType ?? .tv
+    static var debugMultiSeason: MockAnime {
+        var item = MockAnime.debugRemoteFrieren
+        item.seasons = [
+            SeasonOption(number: 1, name: "第 1 季", episodeCount: 28),
+            SeasonOption(number: 2, name: "第 2 季", episodeCount: 12)
+        ]
+        item.seasonNumber = 1
+        item.total = 28
+        return item
+    }
+
+    static var debugShortSynopsis: MockAnime {
+        var item = MockAnime.frieren
+        item.synopsis = "短简介，一行就够。"
+        return item
+    }
+
+    static var debugLongSynopsis: MockAnime {
+        var item = MockAnime.frieren
+        item.synopsis = String(
+            repeating: "在勇者一行击败魔王之后，精灵魔法使芙莉莲踏上了重新理解人类、记住同伴的旅程。",
+            count: 4
+        )
+        return item
+    }
+
+    static func from(
+        summary: TMDBMediaSummary,
+        mediaType: TMDBMediaType? = nil
+    ) -> MockAnime {
+        let type = mediaType ?? summary.mediaType ?? .tv
+        let isMovie = type == .movie
         return MockAnime(
             id: "\(type.rawValue)-\(summary.id)",
             title: summary.displayTitle,
@@ -245,7 +309,29 @@ struct MockAnime: Identifiable, Hashable, Codable {
         )
     }
 
-    static func from(tv detail: TMDBTVDetail, season: TMDBSeasonSummary) -> MockAnime {
+    static func seasonOptions(from detail: TMDBTVDetail) -> [SeasonOption] {
+        detail.seasons
+            .filter { $0.seasonNumber >= 0 && $0.episodeCount > 0 }
+            .map { season in
+                let nextDateString = detail.nextEpisodeToAir?.seasonNumber == season.seasonNumber
+                    ? detail.nextEpisodeToAir?.airDate
+                    : nil
+                return SeasonOption(
+                    number: season.seasonNumber,
+                    name: season.seasonNumber == 0 ? "特别篇/OVA" : "第 \(season.seasonNumber) 季",
+                    episodeCount: season.episodeCount,
+                    posterURL: TMDBImage.url(season.posterPath ?? detail.posterPath, size: "w500"),
+                    nextEpisode: nextEpisodeText(for: detail, season: season),
+                    nextEpisodeDateString: nextDateString
+                )
+            }
+    }
+
+    static func from(
+        tv detail: TMDBTVDetail,
+        season: TMDBSeasonSummary,
+        seasons: [SeasonOption] = []
+    ) -> MockAnime {
         let seasonLabel = season.seasonNumber == 0 ? "特别篇/OVA" : "第 \(season.seasonNumber) 季"
         let nextDateString = detail.nextEpisodeToAir?.seasonNumber == season.seasonNumber
             ? detail.nextEpisodeToAir?.airDate
@@ -271,9 +357,67 @@ struct MockAnime: Identifiable, Hashable, Codable {
             tmdbID: detail.id,
             mediaType: "tv",
             seasonNumber: season.seasonNumber,
-            posterURL: TMDBImage.url(season.posterPath ?? detail.posterPath, size: "w500")
+            posterURL: TMDBImage.url(season.posterPath ?? detail.posterPath, size: "w500"),
+            seasons: seasons
         )
     }
+
+    static func from(
+        bangumi detail: BangumiSubject,
+        episodes: [BangumiEpisode] = []
+    ) -> MockAnime {
+        let isMovie = detail.isMovie
+        let knownEpisodes = detail.episodeCount ?? (episodes.isEmpty ? nil : episodes.count)
+        let total = isMovie ? 1 : max(knownEpisodes ?? 1, 1)
+        return MockAnime(
+            id: "bgm-\(detail.id)",
+            title: detail.displayTitle,
+            originalTitle: detail.displayOriginalTitle,
+            seasonLabel: detail.displayFormat,
+            progress: 0,
+            total: total,
+            nextEpisode: bangumiNextEpisodeText(episodes: episodes),
+            nextEpisodeDateString: bangumiNextEpisodeDateString(episodes: episodes),
+            score: detail.rating?.score ?? 0,
+            format: detail.displayFormat,
+            year: detail.year,
+            genres: detail.displayGenres,
+            synopsis: detail.displaySummary,
+            poster: fallbackPoster(for: detail.id),
+            status: .planning,
+            isMovie: isMovie,
+            runtime: isMovie ? 0 : 24,
+            bangumiID: detail.id,
+            mediaType: isMovie ? "movie" : "tv",
+            seasonNumber: nil,
+            posterURL: detail.posterURL
+        )
+    }
+
+    private static func bangumiNextEpisodeDateString(episodes: [BangumiEpisode]) -> String? {
+        let today = bangumiDateFormatter.string(from: .now)
+        return episodes
+            .compactMap(\.airdate)
+            .sorted()
+            .first(where: { $0 >= today })
+    }
+
+    private static func bangumiNextEpisodeText(episodes: [BangumiEpisode]) -> String? {
+        guard let dateString = bangumiNextEpisodeDateString(episodes: episodes) else {
+            return nil
+        }
+        return dateString == bangumiDateFormatter.string(from: .now)
+            ? "今天更新"
+            : "下一话 \(dateString)"
+    }
+
+    private static let bangumiDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 
     static func from(movie detail: TMDBMovieDetail) -> MockAnime {
         MockAnime(
@@ -341,5 +485,66 @@ struct MockAnime: Identifiable, Hashable, Codable {
         output.timeZone = TimeZone(secondsFromGMT: 0)
         output.dateFormat = "M月d日"
         return "第 \(next.episodeNumber) 话 · \(output.string(from: date))"
+    }
+}
+
+extension MockAnime {
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case originalTitle
+        case seasonLabel
+        case progress
+        case total
+        case nextEpisode
+        case nextEpisodeDateString
+        case score
+        case format
+        case year
+        case genres
+        case synopsis
+        case poster
+        case status
+        case isFavorite
+        case userScore
+        case notes
+        case isMovie
+        case runtime
+        case tmdbID
+        case bangumiID
+        case mediaType
+        case seasonNumber
+        case posterURL
+        case seasons
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? "未知作品"
+        originalTitle = try container.decodeIfPresent(String.self, forKey: .originalTitle) ?? ""
+        seasonLabel = try container.decodeIfPresent(String.self, forKey: .seasonLabel) ?? "TV"
+        progress = try container.decodeIfPresent(Int.self, forKey: .progress) ?? 0
+        total = try container.decodeIfPresent(Int.self, forKey: .total) ?? 0
+        nextEpisode = try container.decodeIfPresent(String.self, forKey: .nextEpisode)
+        nextEpisodeDateString = try container.decodeIfPresent(String.self, forKey: .nextEpisodeDateString)
+        score = try container.decodeIfPresent(Double.self, forKey: .score) ?? 0
+        format = try container.decodeIfPresent(String.self, forKey: .format) ?? "TV"
+        year = try container.decodeIfPresent(Int.self, forKey: .year) ?? 0
+        genres = try container.decodeIfPresent([String].self, forKey: .genres) ?? []
+        synopsis = try container.decodeIfPresent(String.self, forKey: .synopsis) ?? ""
+        poster = try container.decodeIfPresent(PosterStyle.self, forKey: .poster) ?? .frieren
+        status = try container.decodeIfPresent(LibraryStatus.self, forKey: .status) ?? .planning
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        userScore = try container.decodeIfPresent(Double.self, forKey: .userScore)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes) ?? ""
+        isMovie = try container.decodeIfPresent(Bool.self, forKey: .isMovie) ?? false
+        runtime = try container.decodeIfPresent(Int.self, forKey: .runtime) ?? 24
+        tmdbID = try container.decodeIfPresent(Int.self, forKey: .tmdbID)
+        bangumiID = try container.decodeIfPresent(Int.self, forKey: .bangumiID)
+        mediaType = try container.decodeIfPresent(String.self, forKey: .mediaType)
+        seasonNumber = try container.decodeIfPresent(Int.self, forKey: .seasonNumber)
+        posterURL = try container.decodeIfPresent(URL.self, forKey: .posterURL)
+        seasons = try container.decodeIfPresent([SeasonOption].self, forKey: .seasons) ?? []
     }
 }

@@ -63,7 +63,11 @@ struct RemoteAnimeDetailLoader: View {
                     errorMessage = "没有找到可播放的季信息。"
                     return
                 }
-                var item = MockAnime.from(tv: detail, season: season)
+                var item = MockAnime.from(
+                    tv: detail,
+                    season: season,
+                    seasons: MockAnime.seasonOptions(from: detail)
+                )
                 applyStoreEntry(to: &item)
                 loaded = item
 
@@ -78,11 +82,22 @@ struct RemoteAnimeDetailLoader: View {
     }
 
     private func preferredSeason(for detail: TMDBTVDetail) -> TMDBSeasonSummary? {
-        if let tracked = library.entries.first(where: {
-            $0.tmdbID == detail.id && $0.mediaType == "tv"
-        }), let seasonNumber = tracked.seasonNumber,
-           let season = detail.seasons.first(where: { $0.seasonNumber == seasonNumber }) {
-            return season
+        // Every season keeps its own library entry, so prefer whatever the user
+        // is actually watching right now.
+        let trackedSeasons = library.entries
+            .filter { $0.tmdbID == detail.id && $0.mediaType == "tv" }
+            .sorted { lhs, rhs in
+                if lhs.status != rhs.status {
+                    return lhs.status == .watching
+                }
+                return (lhs.seasonNumber ?? -1) > (rhs.seasonNumber ?? -1)
+            }
+            .compactMap(\.seasonNumber)
+
+        for seasonNumber in trackedSeasons {
+            if let season = detail.seasons.first(where: { $0.seasonNumber == seasonNumber }) {
+                return season
+            }
         }
 
         if let next = detail.nextEpisodeToAir,

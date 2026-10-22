@@ -1,0 +1,10 @@
+name = "animememo-tmdb-proxy"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+preview_urls = false
+
+# Optional: bind a custom domain that resolves better from mainland China.
+# routes = [
+#   { pattern = "tmdb.example.com", custom_domain = true }
+# ]
