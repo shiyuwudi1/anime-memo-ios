@@ -14,6 +14,9 @@ struct AnimeDetailView: View {
     @State private var isSynopsisExpanded = false
     @State private var showEditSheet = false
     @State private var toast: DetailToast?
+    @State private var topPull: CGFloat = 0
+
+    private static let heroBaseHeight: CGFloat = 320
 
     init(anime: MockAnime) {
         self.anime = anime
@@ -74,9 +77,15 @@ struct AnimeDetailView: View {
     }
 
     var body: some View {
+        GeometryReader { proxy in
+            page(topInset: proxy.safeAreaInsets.top)
+        }
+    }
+
+    private func page(topInset: CGFloat) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                hero
+                hero(topInset: topInset)
                 seasonPicker
                 progressCard
                 synopsisCard
@@ -86,6 +95,12 @@ struct AnimeDetailView: View {
         }
         .scrollIndicators(.hidden)
         .background(AppBackground())
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            max(0, -(geometry.contentOffset.y + geometry.contentInsets.top))
+        } action: { _, newValue in
+            topPull = newValue
+        }
+        .ignoresSafeArea(edges: .top)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -150,18 +165,28 @@ struct AnimeDetailView: View {
         }
     }
 
-    private var hero: some View {
-        ZStack(alignment: .bottomLeading) {
+    private func hero(topInset: CGFloat) -> some View {
+        // The hero is full bleed: it reaches under the status bar and
+        // navigation bar, so there is never an empty strip above it.
+        let height = Self.heroBaseHeight + topInset
+        // Scaling proportionally from the bottom keeps the hero's aspect
+        // ratio intact while its top edge stays pinned to the screen edge
+        // during pull-to-overscroll. The extra width is clipped by the
+        // scroll view, so the image never distorts or leaves a gap.
+        let stretchScale = (height + topPull) / height
+
+        return ZStack(alignment: .bottomLeading) {
             PosterArtwork(style: current.poster, posterURL: current.posterURL, cornerRadius: 0, showsLabel: false)
-                .frame(height: 320)
+                .frame(height: height)
                 .clipped()
+                .scaleEffect(stretchScale, anchor: .bottom)
 
             LinearGradient(
                 colors: [.clear, Color(uiColor: .systemBackground).opacity(0.92)],
                 startPoint: .center,
                 endPoint: .bottom
             )
-            .frame(height: 320)
+            .frame(height: height)
 
             HStack(alignment: .bottom, spacing: 16) {
                 PosterArtwork(style: current.poster, posterURL: current.posterURL)
@@ -201,7 +226,6 @@ struct AnimeDetailView: View {
             .padding(.horizontal, AppTheme.pagePadding)
             .padding(.bottom, 18)
         }
-        .padding(.top, -8)
     }
 
     @ViewBuilder
