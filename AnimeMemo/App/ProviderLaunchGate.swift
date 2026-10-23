@@ -19,6 +19,7 @@ struct ProviderLaunchGate: View {
 
     @AppStorage("metadataProvider") private var providerRaw = MetadataProvider.tmdb.rawValue
     @State private var phase: Phase = .checking
+    @State private var launchStatus = "正在检查网络连接…"
 
     private var provider: MetadataProvider {
         MetadataProvider(rawValue: providerRaw) ?? .tmdb
@@ -28,7 +29,7 @@ struct ProviderLaunchGate: View {
         ZStack {
             switch phase {
             case .checking:
-                LaunchCheckingView()
+                LaunchCheckingView(status: launchStatus)
                     .transition(.opacity)
 
             case .ready:
@@ -49,6 +50,7 @@ struct ProviderLaunchGate: View {
     @MainActor
     private func checkProviders() async {
         phase = .checking
+        launchStatus = "正在连接 TMDB 与 Bangumi…"
 
         let results = await probeResults()
         guard !Task.isCancelled else { return }
@@ -65,6 +67,7 @@ struct ProviderLaunchGate: View {
         phase = .ready
     }
 
+    @MainActor
     private func probeResults() async -> [ProviderHealth] {
         #if DEBUG
         if UserDefaults.standard.bool(forKey: "failProviderProbes") {
@@ -73,13 +76,39 @@ struct ProviderLaunchGate: View {
             }
         }
         #endif
-        return await ProviderHealth.probeAll(timeout: Self.probeTimeout)
+
+        var results: [ProviderHealth] = []
+        for await health in ProviderHealth.probeUpdates(timeout: Self.probeTimeout) {
+            guard !Task.isCancelled else { break }
+            results.append(health)
+            updateLaunchStatus(for: health, completed: results.count)
+        }
+        return results
+    }
+
+    @MainActor
+    private func updateLaunchStatus(for health: ProviderHealth, completed: Int) {
+        guard completed < MetadataProvider.allCases.count else {
+            launchStatus = "数据源检测完成，正在进入…"
+            return
+        }
+
+        let remaining = MetadataProvider.allCases
+            .filter { $0 != health.provider }
+            .map(\.title)
+            .joined(separator: "、")
+
+        launchStatus = health.isAvailable
+            ? "\(health.provider.title) 已连接 · \(remaining) 检测中…"
+            : "\(health.provider.title) 暂无响应 · \(remaining) 检测中…"
     }
 }
 
 // MARK: - Splash
 
 private struct LaunchCheckingView: View {
+    let status: String
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isPulsing = false
 
@@ -121,10 +150,22 @@ private struct LaunchCheckingView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                ProgressView()
-                    .tint(AppTheme.accent)
-                    .padding(.top, 6)
-                    .accessibilityLabel("正在启动")
+                VStack(spacing: 10) {
+                    ProgressView()
+                        .tint(AppTheme.accent)
+
+                    Text(status)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .contentTransition(.opacity)
+                        .animation(.easeInOut(duration: 0.25), value: status)
+                        .accessibilityIdentifier("launchGate.status")
+                }
+                .frame(maxWidth: 300)
+                .padding(.top, 6)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(status)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

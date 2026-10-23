@@ -37,19 +37,33 @@ struct ProviderHealth: Sendable, Equatable, Identifiable {
     /// Probes both sources concurrently so launch waits for the slowest one
     /// instead of the sum of both timeouts.
     static func probeAll(timeout: TimeInterval? = nil) async -> [ProviderHealth] {
-        await withTaskGroup(of: ProviderHealth.self) { group in
-            for provider in MetadataProvider.allCases {
-                group.addTask {
-                    await probe(provider, timeout: timeout)
+        var byProvider: [MetadataProvider: ProviderHealth] = [:]
+        for await health in probeUpdates(timeout: timeout) {
+            byProvider[health.provider] = health
+        }
+        return MetadataProvider.allCases.compactMap { byProvider[$0] }
+    }
+
+    /// Emits each provider's health as soon as its probe settles, in
+    /// completion order. The launch splash uses this to describe what it is
+    /// still waiting for.
+    static func probeUpdates(timeout: TimeInterval? = nil) -> AsyncStream<ProviderHealth> {
+        AsyncStream { continuation in
+            let task = Task {
+                await withTaskGroup(of: ProviderHealth.self) { group in
+                    for provider in MetadataProvider.allCases {
+                        group.addTask {
+                            await probe(provider, timeout: timeout)
+                        }
+                    }
+
+                    for await health in group {
+                        continuation.yield(health)
+                    }
                 }
+                continuation.finish()
             }
-
-            var byProvider: [MetadataProvider: ProviderHealth] = [:]
-            for await health in group {
-                byProvider[health.provider] = health
-            }
-
-            return MetadataProvider.allCases.compactMap { byProvider[$0] }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 
