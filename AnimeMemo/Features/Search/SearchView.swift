@@ -181,7 +181,7 @@ struct SearchView: View {
                     spacing: 18
                 ) {
                     ForEach(discoveryItems) { anime in
-                        NavigationLink(destination: detailDestination(for: anime)) {
+                        NavigationLink(destination: AnimeDetailDestination(anime: anime)) {
                             VStack(alignment: .leading, spacing: 8) {
                                 PosterArtwork(
                                     style: anime.poster,
@@ -222,7 +222,7 @@ struct SearchView: View {
 
             VStack(spacing: 0) {
                 ForEach(results) { anime in
-                    NavigationLink(destination: detailDestination(for: anime)) {
+                    NavigationLink(destination: AnimeDetailDestination(anime: anime)) {
                         HStack(spacing: 14) {
                             PosterArtwork(style: anime.poster, posterURL: anime.posterURL, cornerRadius: 10, showsLabel: false)
                                 .frame(width: 58, height: 82)
@@ -346,17 +346,6 @@ struct SearchView: View {
         isOffline = true
         isLoading = false
         errorMessage = nil
-    }
-
-    @ViewBuilder
-    private func detailDestination(for anime: MockAnime) -> some View {
-        if anime.bangumiID != nil {
-            BangumiDetailLoader(summary: anime)
-        } else if anime.tmdbID != nil {
-            RemoteAnimeDetailLoader(summary: anime)
-        } else {
-            AnimeDetailView(anime: anime)
-        }
     }
 
     @MainActor

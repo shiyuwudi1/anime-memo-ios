@@ -34,6 +34,8 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
                     header
 
+                    HomeScheduleView()
+
                     if watching.isEmpty {
                         emptyContinueState
                     } else {
@@ -100,11 +102,6 @@ struct HomeView: View {
             Text("今天想看点什么？")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .tracking(-0.8)
-
-            Text("不登录，打开就记。数据只存在这台设备上。")
-                .font(.footnote)
-                .foregroundStyle(.tertiary)
-                .padding(.top, 2)
         }
         .padding(.top, 8)
     }
@@ -279,6 +276,7 @@ private struct ContinueWatchingRow: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("home.continue.\(anime.id)")
 
             GlassIconButton(systemName: "plus", tint: AppTheme.accent, action: onIncrement)
                 .accessibilityLabel("记录一话")

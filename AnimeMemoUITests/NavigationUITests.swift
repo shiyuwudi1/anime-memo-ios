@@ -12,7 +12,9 @@ final class NavigationUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["继续观看"].waitForExistence(timeout: 12))
 
-        let frieren = app.staticTexts["葬送的芙莉莲"].firstMatch
+        let frieren = app.descendants(matching: .any)
+            .matching(identifier: "home.continue.frieren-s2")
+            .firstMatch
         XCTAssertTrue(frieren.waitForExistence(timeout: 6))
         frieren.tap()
 
@@ -24,13 +26,28 @@ final class NavigationUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["继续观看"].waitForExistence(timeout: 12))
 
-        let solo = app.staticTexts["我独自升级"].firstMatch
+        let solo = app.descendants(matching: .any)
+            .matching(identifier: "home.continue.solo-s2")
+            .firstMatch
         XCTAssertTrue(solo.waitForExistence(timeout: 6))
         solo.tap()
 
         XCTAssertTrue(app.staticTexts["我的进度"].waitForExistence(timeout: 6))
         XCTAssertTrue(app.staticTexts["我独自升级"].waitForExistence(timeout: 6))
         XCTAssertFalse(app.staticTexts["葬送的芙莉莲"].exists)
+    }
+
+    func testHomeScheduleSitsAboveContinueWatching() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-screen", "home"]
+        app.launch()
+
+        let schedule = app.staticTexts["课程表"]
+        let continueWatching = app.staticTexts["继续观看"]
+
+        XCTAssertTrue(schedule.waitForExistence(timeout: 12))
+        XCTAssertTrue(continueWatching.waitForExistence(timeout: 12))
+        XCTAssertLessThan(schedule.frame.minY, continueWatching.frame.minY)
     }
 
     func testSeasonsKeepSeparateProgress() throws {

@@ -21,6 +21,8 @@ struct BangumiSubject: Decodable, Identifiable, Hashable, Sendable {
     let metaTags: [String]?
     let tags: [BangumiTag]?
     let nsfw: Bool?
+    let collection: BangumiCollection?
+    let rank: Int?
 
     var displayTitle: String {
         if let nameCN, !nameCN.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -63,6 +65,12 @@ struct BangumiSubject: Decodable, Identifiable, Hashable, Sendable {
         return nil
     }
 
+    /// Number of users currently watching the subject. The legacy calendar
+    /// endpoint includes it, which makes it a useful heat signal for schedules.
+    var doingCount: Int {
+        collection?.doing ?? 0
+    }
+
     var displayFormat: String {
         let value = platform?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !value.isEmpty { return value }
@@ -93,6 +101,24 @@ struct BangumiSubject: Decodable, Identifiable, Hashable, Sendable {
         case metaTags = "meta_tags"
         case tags
         case nsfw
+        case collection
+        case rank
+    }
+}
+
+struct BangumiCollection: Decodable, Hashable, Sendable {
+    let wish: Int?
+    let collect: Int?
+    let doing: Int?
+    let onHold: Int?
+    let dropped: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case wish
+        case collect
+        case doing
+        case onHold = "on_hold"
+        case dropped
     }
 }
 
