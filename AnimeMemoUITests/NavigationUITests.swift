@@ -98,6 +98,36 @@ final class NavigationUITests: XCTestCase {
         XCTAssertTrue(app.buttons["收起简介"].waitForExistence(timeout: 6))
     }
 
+    func testLibraryCanSwitchBetweenExpandedAndCompactLayouts() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-screen", "library", "-resetLibrary"]
+        app.launch()
+
+        let expandedButton = app.buttons["library.layout.expanded"]
+        let compactButton = app.buttons["library.layout.compact"]
+
+        XCTAssertTrue(expandedButton.waitForExistence(timeout: 12))
+        XCTAssertTrue(compactButton.exists)
+
+        expandedButton.tap()
+
+        let expandedRow = app.descendants(matching: .any)
+            .matching(identifier: "library.row.expanded.frieren-s2")
+            .firstMatch
+        XCTAssertTrue(expandedRow.waitForExistence(timeout: 6))
+        let expandedHeight = expandedRow.frame.height
+        XCTAssertGreaterThan(expandedHeight, 60)
+
+        compactButton.tap()
+
+        let compactRow = app.descendants(matching: .any)
+            .matching(identifier: "library.row.compact.frieren-s2")
+            .firstMatch
+        XCTAssertTrue(compactRow.waitForExistence(timeout: 6))
+        XCTAssertLessThan(compactRow.frame.height, expandedHeight)
+        XCTAssertFalse(expandedRow.exists)
+    }
+
     func testSettingsCanSwitchDataSource() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-screen", "settings"]

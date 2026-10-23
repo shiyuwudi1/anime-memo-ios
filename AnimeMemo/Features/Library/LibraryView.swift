@@ -7,6 +7,7 @@ struct LibraryView: View {
     @State private var sort: LibrarySort = .recent
     @State private var query = ""
     @State private var toast: LibraryToast?
+    @AppStorage("libraryLayout") private var layout: LibraryLayout = .expanded
 
     private var entries: [MockAnime] {
         library.entries
@@ -45,6 +46,8 @@ struct LibraryView: View {
                         .foregroundStyle(.secondary)
 
                     Spacer()
+
+                    LibraryLayoutSwitcher(layout: $layout)
 
                     Menu {
                         Picker("排序", selection: $sort) {
@@ -95,11 +98,19 @@ struct LibraryView: View {
                     List {
                         ForEach(filteredEntries) { anime in
                             NavigationLink(destination: AnimeDetailView(anime: anime)) {
-                                LibraryRow(anime: anime)
+                                Group {
+                                    switch layout {
+                                    case .expanded:
+                                        LibraryRow(anime: anime)
+                                    case .compact:
+                                        LibraryCompactRow(anime: anime)
+                                    }
+                                }
                             }
-                            .listRowInsets(EdgeInsets(top: 6, leading: AppTheme.pagePadding, bottom: 6, trailing: AppTheme.pagePadding))
+                            .accessibilityIdentifier("library.row.\(layout.rawValue).\(anime.id)")
+                            .listRowInsets(rowInsets)
                             .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                            .listRowSeparator(layout == .compact ? .visible : .hidden)
                             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                 Button {
                                     increment(anime)
@@ -152,6 +163,12 @@ struct LibraryView: View {
     private func count(for filter: LibraryFilter) -> Int {
         guard let status = filter.status else { return entries.count }
         return entries.filter { $0.status == status }.count
+    }
+
+    private var rowInsets: EdgeInsets {
+        layout == .compact
+            ? EdgeInsets(top: 0, leading: AppTheme.pagePadding, bottom: 0, trailing: AppTheme.pagePadding)
+            : EdgeInsets(top: 6, leading: AppTheme.pagePadding, bottom: 6, trailing: AppTheme.pagePadding)
     }
 
     private func increment(_ anime: MockAnime) {
@@ -240,6 +257,114 @@ private struct LibraryRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+private struct LibraryCompactRow: View {
+    let anime: MockAnime
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: anime.status.systemImage)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(statusTint)
+                .frame(width: 14)
+                .accessibilityHidden(true)
+
+            Text(anime.title)
+                .font(.subheadline.weight(.medium))
+                .lineLimit(1)
+
+            Text(anime.seasonLabel)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+                .layoutPriority(-1)
+
+            Spacer(minLength: 8)
+
+            Text(progressText)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .layoutPriority(1)
+        }
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var progressText: String {
+        anime.isMovie ? anime.progressText : "第 \(anime.progress) / \(anime.total) 话"
+    }
+
+    private var statusTint: Color {
+        switch anime.status {
+        case .watching: return AppTheme.accent
+        case .planning: return .blue
+        case .completed: return .green
+        case .paused: return .orange
+        case .dropped: return .gray
+        }
+    }
+}
+
+private struct LibraryLayoutSwitcher: View {
+    @Binding var layout: LibraryLayout
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(LibraryLayout.allCases) { item in
+                Button {
+                    guard layout != item else { return }
+                    if reduceMotion {
+                        layout = item
+                    } else {
+                        withAnimation(.snappy(duration: 0.24)) {
+                            layout = item
+                        }
+                    }
+                } label: {
+                    Image(systemName: item.systemImage)
+                        .font(.system(size: 13, weight: .semibold))
+                        .frame(width: 33, height: 27)
+                        .foregroundStyle(layout == item ? Color.primary : Color.secondary)
+                        .background {
+                            if layout == item {
+                                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                    .fill(Color.primary.opacity(0.10))
+                            }
+                        }
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.title)
+                .accessibilityAddTraits(layout == item ? .isSelected : [])
+                .accessibilityIdentifier("library.layout.\(item.rawValue)")
+            }
+        }
+        .padding(3)
+        .glassSurface(.capsule, variant: .regular)
+    }
+}
+
+private enum LibraryLayout: String, CaseIterable, Identifiable {
+    case expanded
+    case compact
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .expanded: return "展开视图"
+        case .compact: return "折叠视图"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .expanded: return "rectangle.grid.1x2"
+        case .compact: return "list.bullet"
+        }
     }
 }
 
